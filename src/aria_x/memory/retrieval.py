@@ -11,11 +11,12 @@ ranker over the two retrieval corpora that already exist in the store:
 * graph nodes (facts, findings, notes, intents, goals, hints), and
 * cross-worker process traces (ARTEX lineage).
 
-Chinese is a first-class engagement language here. Dense CJK writing has no
+CJK text is indexed alongside Latin text. Dense CJK writing has no
 whitespace boundaries, so unigram tokenization would over-match function words;
-we index overlapping bigrams ("数据库" -> 数据, 据库) and also emit a unigram for
-single-character runs. Latin text uses word tokens with dotted/URL-ish
-identifiers kept whole *and* split into their word parts.
+we index overlapping bigrams (a two-character word yields both adjacent
+character pairs) and also emit a unigram for single-character runs. Latin text
+uses word tokens with dotted/URL-ish identifiers kept whole *and* split into
+their word parts.
 
 Ranking is deliberately deterministic: equal scores break by kind priority,
 graph sequence and id. Two retrievals over an unchanged store must produce the

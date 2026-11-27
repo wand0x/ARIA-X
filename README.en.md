@@ -1,5 +1,5 @@
 <p align="right">
-  <a href="README.md">简体中文</a> · <strong>English</strong> · <a href="README.ja.md">日本語</a>
+  <a href="README.md">English</a> · <strong>English</strong> · <a href="README.ja.md">日本語</a>
 </p>
 
 <p align="center">
@@ -116,7 +116,7 @@ ARIA-X combines context-aware agent reasoning with explicit state, execution pol
 - **Evidence-Backed Reports**: Each run writes `report.md`, `report.html`, and `findings.json` under `runs/<run_id>/`, backed by SQLite state, a JSONL event stream, and an audit table.
 - **Zero-CDN Local Web Console**: Built-in SPA served on `127.0.0.1:8787` by default, streaming live updates over Server-Sent Events (SSE) with optional Bearer token authentication.
 - **Interactive PTY Sessions (v0.1.1)**: `session_open`, `session_send`, `session_read`, `session_close`, and `session_list` support programs requiring persistent terminal interaction inside isolated local labs. Starting a session and sending input are high-risk actions subject to command policy, Scope checks, and approval gates. Sessions are capped at four concurrent instances per run, with idle cleanup; see the [changelog](CHANGELOG.md).
-- **Trilingual Web Console & Report Templates (v0.2.0)**: The Web Console supports switching between `English`, `简体中文`, and `日本語` in Settings (defaulting to English; display-only preference stored in `localStorage` without altering report bodies). `aria_x.report.render` also supports explicit `en`, `zh-CN`, and `ja` fixed-copy templates while existing CLI/Demo entry points continue defaulting to English report copy.
+- **Web Console & Report Templates (v0.2.0)**: The Web Console supports English and Japanese in Settings (defaulting to English; display-only preference stored in `localStorage` without altering report bodies). The `zh-CN` choice stays in the language list and uses this same English wording. `aria_x.report.render` supports explicit `en`, `zh-CN`, and `ja` fixed-copy templates; the `zh-CN` template uses the English wording. Existing CLI and Demo entry points still default to English report copy.
 
 ---
 
@@ -481,7 +481,7 @@ ARIA-X brings ideas from **ARTEX, Cairn, and PentAGI** into one independently im
 | Upstream Project | Original Author / Team | Core Concepts Adopted by ARIA-X | License |
 | :--- | :--- | :--- | :--- |
 | **ARTEX** | [Autumn-27](https://github.com/Autumn-27) (original repo `Autumn-27/ARTEX` removed by author in Oct 2026) | Dual-graph separation (exploration graph + shared asset graph); Planner as the sole intent generator; cross-wakeup Todo chain; cross-worker process traces; approval gate; graph-driven reports | **AGPL-3.0** |
-| **Cairn** | [起零衍迹 / oritera](https://github.com/oritera) | `Fact / Intent / Hint` blackboard; `bootstrap → reason → explore` state-space search; role-less OODA workers; centering state on verified facts rather than static task queues | **AGPL-3.0** |
+| **Cairn** | [oritera](https://github.com/oritera) | `Fact / Intent / Hint` blackboard; `bootstrap → reason → explore` state-space search; role-less OODA workers; centering state on verified facts rather than static task queues | **AGPL-3.0** |
 | **PentAGI** | [VXControl](https://github.com/vxcontrol) | `researcher / coder / adviser / memorist` specialist delegation; LLM provider abstraction; sandboxed terminal execution; layered memory | **MIT** |
 
 Related repositories by the upstream authors:

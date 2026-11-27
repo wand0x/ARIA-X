@@ -1,17 +1,17 @@
-# Docker 沙箱与 Kali 工具镜像
+# Docker sandbox and Kali tool image
 
-ARIA-X 的默认沙箱是 `local`（直接在当前用户权限下执行命令）。要获得真正的隔离边界，
-把 `sandbox.backend` 切换为 `docker`，并用 Kali 镜像承载 `nmap`、`ffuf`、`nuclei` 等工具。
+ARIA-X's default sandbox is `local` (commands run directly with the current user's privileges). For a real isolation boundary,
+set `sandbox.backend` to `docker` and use a Kali image to carry tools such as `nmap`, `ffuf`, and `nuclei`.
 
-> **安全提示**：Docker 沙箱不是 scope 边界。目标授权由 ARIA-X 的 `Scope` 与网络工具强制执行；
-> Docker 只负责命令隔离、资源限制和可丢弃的文件系统。不要为了“方便”把宿主目录、
-> `docker.sock` 或宿主机网络挂进工具容器。
+> **Security note**: the Docker sandbox is not a scope boundary. Target authorization is enforced by ARIA-X `Scope` and the network tools;
+> Docker only isolates commands, limits resources, and provides a disposable filesystem. Do not mount a host directory,
+> `docker.sock`, or the host network into a tool container just for "convenience".
 
-## 1. 准备镜像
+## 1. Prepare the image
 
 ```bash
 docker pull kalilinux/kali-rolling
-# 安装常用工具的派生镜像（按需选择，构建需要网络）
+# derived image with common tools (pick what you need; the build needs network access)
 cat > /tmp/Dockerfile.kali <<'DOCKER'
 FROM kalilinux/kali-rolling
 ENV DEBIAN_FRONTEND=noninteractive
@@ -24,16 +24,16 @@ DOCKER
 docker build -f /tmp/Dockerfile.kali -t aria-x-kali:latest .
 ```
 
-如果只需要 ARIA-X 自带的 HTTP/TCP 工具，`kalilinux/kali-rolling` 原镜像即可，
-无需安装任何软件包。
+If you only need the HTTP/TCP tools that ship with ARIA-X, the stock `kalilinux/kali-rolling` image is enough;
+no packages need to be installed.
 
-## 2. 配置 ARIA-X
+## 2. Configure ARIA-X
 
 ```toml
 [sandbox]
 backend = "docker"
-image = "aria-x-kali:latest"   # 或 kalilinux/kali-rolling
-network = "none"             # 需要访问目标时改为 "bridge"
+image = "aria-x-kali:latest"   # or kalilinux/kali-rolling
+network = "none"             # change to "bridge" when the target must be reachable
 timeout = 120
 
 [scope]
@@ -42,29 +42,29 @@ targets = ["127.0.0.1", "*.lab.example.test"]
 ```
 
 ```bash
-PYTHONPATH=src python -m aria_x doctor     # 会检查 docker 守护进程与镜像
+PYTHONPATH=src python -m aria_x doctor     # checks the Docker daemon and the image
 ```
 
-## 3. 行为与限制
+## 3. Behavior and limits
 
-- 每个 `terminal_exec` 启动**一次性容器**（`docker run --rm -i`），
-  `/work` 挂载当前 engagement 的工作目录；容器退出即销毁。
-- `network = "none"` 时没有外网。要扫描实验目标，使用 `bridge`，
-  并且只把目标放在隔离的 lab 网络里。
-- 镜像内命令以容器 root 运行（上游 Kali 镜像的默认行为）。ARIA-X 的外层策略
-  `CommandPolicy` 会拦截 `rm -rf /`、`mkfs`、`dd of=/dev/sd*`、fork bomb 等破坏性命令，
-  但这只是启发式，不是完整沙箱。
-- 超时会执行 `docker kill`；输出会被截断到 `sandbox.max_output` 字节。
-- 不使用 `--privileged`，不挂载 `/var/run/docker.sock`，不挂载宿主根目录。
+- Each `terminal_exec` starts a **one-shot container** (`docker run --rm -i`);
+  `/work` is the current engagement working directory; the container is destroyed on exit.
+- `network = "none"` means no external network. To scan a lab target, use `bridge`,
+  and put that target only on an isolated lab network.
+- Commands in the image run as container root (the upstream Kali image default). ARIA-X's outer
+  `CommandPolicy` blocks destructive commands such as `rm -rf /`, `mkfs`, `dd of=/dev/sd*`, and fork bombs,
+  but that is only a heuristic, not a complete sandbox.
+- On timeout, ARIA-X runs `docker kill`; output is truncated to `sandbox.max_output` bytes.
+- It does not use `--privileged`, does not mount `/var/run/docker.sock`, and does not mount the host root.
 
-## 4. 在容器里跑 ARIA-X 本体
+## 4. Run ARIA-X itself in a container
 
-`docker/Dockerfile` 只包含 ARIA-X 本体（标准库，无 pip）。它**不包含** Docker CLI，
-因此容器内的 `sandbox.backend` 只能使用 `local`（容器本身即隔离层）。
-若确实需要“容器内再开容器”，必须自行安装 Docker CLI 并挂载宿主 socket——
-这等于把宿主 root 权限交给容器内进程，ARIA-X 不推荐也不默认支持。
+`docker/Dockerfile` contains only ARIA-X itself (standard library, no pip). It **does not include** the Docker CLI,
+so `sandbox.backend` inside that container can only be `local` (the container itself is the isolation layer).
+If you really need a container that starts further containers, you must install the Docker CLI yourself and mount the host socket —
+that hands host root to the process inside the container. ARIA-X does not recommend this and does not support it by default.
 
-## 5. 清理
+## 5. Cleanup
 
 ```bash
 docker ps -a --filter name=aria-x- --format '{{.ID}}' | xargs -r docker rm -f

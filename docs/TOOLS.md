@@ -1,69 +1,63 @@
-# ARIA-X 工具参考
+# ARIA-X Tool Reference
 
-工具是 agent **唯一**能改变世界的方式。每个工具声明：
+Tools are the **only** way an agent can change the world. Each tool declares:
 
-- `name` / `description` / JSON Schema 参数；
-- `risk`：`low` / `medium` / `high` / `critical`；
-- `requires_scope`：是否在 I/O 前强制 `Scope` 授权；
-- `read_only`：是否只读；
-- `tags`：分类。
+- `name` / `description` / JSON Schema parameters;
+- `risk`: `low` / `medium` / `high` / `critical`;
+- `requires_scope`: whether `Scope` authorization is enforced before I/O;
+- `read_only`: whether it is read-only;
+- `tags`: a category.
 
-执行统一经过 `ToolRegistry.execute(name, args, ctx)`：参数校验 → `ctx.check_cancel()` →
-工具实现 → 异常转换为 `ToolResult`（scope 违规、审批拒绝、其他 AriaXError、未预期异常分别处理）。
-结果以 `role="tool"` 消息回给模型，并写入轨迹。
+Every call goes through `ToolRegistry.execute(name, args, ctx)`: argument validation → `ctx.check_cancel()` → the tool implementation → exceptions converted into a `ToolResult` (a scope violation, an approval denial, any other AriaXError, and an unexpected exception are handled separately). The result is returned to the model as a `role="tool"` message and written to a trace.
 
-> 风险等级同时驱动**审批门**（`high`/`critical` 在 `ask`/`deny` 下被拦截）与策略提示，
-> 但它不是运行时沙箱。真正的隔离来自 `sandbox.backend`（Docker）与 `Scope`；
-> `critical` 目前没有内置工具使用。
+> Risk level drives both the **approval gate** (`high` / `critical` are intercepted under `ask` / `deny`) and policy hints, but it is not a runtime sandbox. Real isolation comes from `sandbox.backend` (Docker) and from `Scope`. No built-in tool currently uses `critical`.
 
-## 总表（27 个）
+## Summary Table (27)
 
-| 名称 | 风险 | Scope | 必需参数 | 作用 |
+| Name | Risk | Scope | Required parameters | Purpose |
 | --- | --- | --- | --- | --- |
-| `terminal_exec` | high | 命令启发式 | `command` | 沙箱内执行一条 shell 命令 |
-| `session_open` | high | 命令启发式 | `command` | 启动持久交互会话（PTY） |
-| `session_send` | high | 命令启发式 | `session_id` | 向会话输入文本并取回输出 |
-| `session_read` | medium | — | `session_id` | 读取会话新增输出 |
-| `session_close` | low | — | `session_id` | 关闭会话并回收进程组 |
-| `session_list` | low | — | — | 列出当前会话 |
-| `file_read` | medium | — | `path` | 读取 workdir 内 UTF-8 文件 |
-| `file_write` | high | — | `path`, `content` | 写入 workdir 内文件 |
-| `file_list` | low | — | — | 列出 workdir 内目录 |
-| `http_request` | medium | 是 | `url` | 单次 HTTP 请求 |
-| `dns_lookup` | low | 是 | `host` | A/AAAA 或 PTR 查询 |
-| `port_scan` | high | 是 | `host` | 有界 TCP connect 扫描 |
-| `tls_probe` | medium | 是 | `host` | TLS 握手与证书信息 |
-| `web_probe` | medium | 是 | `base_url` | 小字典路径探测 |
-| `web_search` | low | — | `query` | 外部研究搜索（非目标流量） |
-| `add_fact` | low | — | `title`, `body` | 黑板写入 fact |
-| `add_finding` | medium | — | `title`, `severity`, `body` | 黑板写入 finding + 证据 |
-| `add_asset` | low | — | `kind`, `value` | 资产图 upsert |
-| `anchor_node` | low | — | `node_id`, `asset_value` | 节点锚定到资产 |
-| `graph_query` | low | — | `view` | 查询图/发现/资产/意图/todo/轨迹 |
-| `search_traces` | low | — | `query` | 检索其他 worker 的轨迹 |
-| `memory_store` | low | — | `text` | 写入项目记忆 |
-| `memory_search` | low | — | `query` | TF-IDF 检索项目记忆 |
-| `todo_update` | low | — | — | 维护 todo 链 |
-| `prove_goal` | medium | — | `summary` | 标记目标已被证据证明 |
-| `delegate_specialist` | low | — | `specialist`, `question` | 委派窄问题给专家 |
-| `scope_check` | low | — | `target` | 诊断 scope 判定 |
+| `terminal_exec` | high | command heuristic | `command` | Run one shell command inside the sandbox |
+| `session_open` | high | command heuristic | `command` | Start a persistent interactive session (PTY) |
+| `session_send` | high | command heuristic | `session_id` | Send text to the session and collect output |
+| `session_read` | medium | — | `session_id` | Read new output from the session |
+| `session_close` | low | — | `session_id` | Close the session and reap the process group |
+| `session_list` | low | — | — | List the current sessions |
+| `file_read` | medium | — | `path` | Read a UTF-8 file inside the workdir |
+| `file_write` | high | — | `path`, `content` | Write a file inside the workdir |
+| `file_list` | low | — | — | List a directory inside the workdir |
+| `http_request` | medium | yes | `url` | One HTTP request |
+| `dns_lookup` | low | yes | `host` | An A/AAAA or PTR query |
+| `port_scan` | high | yes | `host` | A bounded TCP connect scan |
+| `tls_probe` | medium | yes | `host` | TLS handshake and certificate information |
+| `web_probe` | medium | yes | `base_url` | Probe paths from a small wordlist |
+| `web_search` | low | — | `query` | External research search (not target traffic) |
+| `add_fact` | low | — | `title`, `body` | Write a fact to the blackboard |
+| `add_finding` | medium | — | `title`, `severity`, `body` | Write a finding, plus evidence, to the blackboard |
+| `add_asset` | low | — | `kind`, `value` | Upsert into the asset graph |
+| `anchor_node` | low | — | `node_id`, `asset_value` | Anchor a node to an asset |
+| `graph_query` | low | — | `view` | Query the graph, findings, assets, intents, todos, or traces |
+| `search_traces` | low | — | `query` | Retrieve traces from other workers |
+| `memory_store` | low | — | `text` | Write project memory |
+| `memory_search` | low | — | `query` | TF-IDF search over project memory |
+| `todo_update` | low | — | — | Maintain the todo chain |
+| `prove_goal` | medium | — | `summary` | Mark the goal as proved by evidence |
+| `delegate_specialist` | low | — | `specialist`, `question` | Delegate a narrow question to a specialist |
+| `scope_check` | low | — | `target` | Diagnose a scope decision |
 
-`requires_scope=是` 的工具在发起任何网络 I/O 之前调用 `Scope.require_url` / `require_host`；
-违规会抛 `ScopeViolation`，被 Registry 转成失败结果并写审计。
+Tools with `requires_scope=yes` call `Scope.require_url` / `require_host` before any network I/O. A violation raises `ScopeViolation`, which the Registry turns into a failure result and an audit record.
 
-## 终端与文件
+## Terminal and Files
 
 ### `terminal_exec(command, timeout?, cwd?)`
 
-- 在 `sandbox` 中执行 `bash -lc <command>`；`cwd` 必须是 engagement workdir 的子目录；
-- 先过 `CommandPolicy`：拒绝 `rm -rf /`、`mkfs`、`dd of=/dev/sd*`、fork bomb、
-  关机/重启、`curl|bash`、写裸设备、`history -c` 等模式；
-- 对命令中的字面 URL/IP 做 scope 启发式检查（不是完整解析，无法覆盖所有间接目标）；
-- 返回 `exit_code/stdout/stderr/timed_out/duration_ms`，输出按 `sandbox.max_output` 截断；
-- 超时会杀掉整个进程组（local）或 `docker kill`（docker）；
-- 记录一条 `Trace`（工具名、参数、结果摘要）。
+- Runs `bash -lc <command>` inside the `sandbox`. `cwd` must be a subdirectory of the engagement workdir.
+- Passes `CommandPolicy` first. It rejects patterns such as `rm -rf /`, `mkfs`, `dd of=/dev/sd*`, a fork bomb, shutdown or reboot, `curl|bash`, writes to a raw device, and `history -c`.
+- Runs a heuristic scope check on literal URLs and IPs in the command. This is not a full parse, and it cannot cover every indirect target.
+- Returns `exit_code/stdout/stderr/timed_out/duration_ms`. Output is truncated to `sandbox.max_output`.
+- On timeout, the whole process group is killed (local) or `docker kill` is used (docker).
+- Records one `Trace` (tool name, arguments, and a result summary).
 
-示例：
+Example:
 
 ```json
 {"command": "curl -sS -D - http://127.0.0.1:8000/ -o /dev/null", "timeout": 15}
@@ -71,45 +65,42 @@
 
 ### `file_read(path, max_bytes?)`
 
-- 相对路径按 workdir 解析；拒绝父目录穿越、绝对路径逃逸与指向外部的符号链接；
-- 只接受 UTF-8 文本（解码失败返回错误），默认上限由实现截断；
-- 适合读取证据文件、扫描输出、生成的 payload。
+- A relative path is resolved against the workdir. Parent-directory traversal, escape via an absolute path, and a symlink that points outside are rejected.
+- Only UTF-8 text is accepted (a decode failure returns an error). The implementation truncates at a default cap.
+- Suitable for reading evidence files, scan output, and generated payloads.
 
 ### `file_write(path, content)`
 
-- 同样 jail 在 workdir；自动创建父目录；
-- 风险 high：模型可以写脚本，但**不能**写到 workdir 之外；
-- 写入会记录轨迹；不会自动执行。
+- Likewise jailed to the workdir. Parent directories are created automatically.
+- Risk is high: the model may write scripts, but it **cannot** write outside the workdir.
+- The write is recorded as a trace. It is not executed automatically.
 
 ### `file_list(path?)`
 
-- 列出目录项（名称、类型、大小）；默认 workdir；
-- 只读，低风险。
+- Lists directory entries (name, type, size). The default is the workdir.
+- Read-only, and low risk.
 
-## 交互会话（PTY）
+## Interactive Sessions (PTY)
 
-`terminal_exec` 是"执行一条命令拿回结果"；遇到需要终端语义的程序（`msfconsole`、`ssh`、
-数据库 REPL、`nc` 反弹 shell）它就不够用了。会话工具补上这一层。
+`terminal_exec` means "run one command and take the result back". It is not enough for programs that need terminal semantics (`msfconsole`, `ssh`, a database REPL, an `nc` reverse shell). The session tools fill that gap.
 
-| 工具 | 说明 |
+| Tool | Description |
 | --- | --- |
-| `session_open(command, name?, cwd?)` | 用 PTY 启动一个持久进程，返回 `session_id` 与初始 banner |
-| `session_send(session_id, text?, newline?, wait_ms?)` | 输入文本并取回 `wait_ms` 内的输出；`text` 省略表示按回车 |
-| `session_read(session_id, wait_ms?)` | 只读新增输出，用于轮询异步打印 |
-| `session_close(session_id)` | 先发 `exit`，再 SIGTERM，最后 SIGKILL；返回退出码与最终输出 |
-| `session_list()` | 列出会话的 id / 名称 / 存活 / 空闲秒数 / 缓冲字节数 |
+| `session_open(command, name?, cwd?)` | Start a persistent process on a PTY and return `session_id` plus the initial banner |
+| `session_send(session_id, text?, newline?, wait_ms?)` | Send text and collect output within `wait_ms`. Omitting `text` means press Enter |
+| `session_read(session_id, wait_ms?)` | Read only new output, for polling something that prints asynchronously |
+| `session_close(session_id)` | Send `exit`, then SIGTERM, then SIGKILL. Returns the exit code and the final output |
+| `session_list()` | List each session's id, name, liveness, idle seconds, and buffered bytes |
 
-约束与保证：
+Constraints and guarantees:
 
-- **同一套护栏**：`session_open` 的命令与 `session_send` 的文本都要过 `CommandPolicy`
-  和 scope 启发式——会话不是绕过检查的后门；
-- **有界**：单次运行最多 4 个会话，单会话输出缓冲 256 KB，单次读取返回 8 KB；
-- **自动回收**：空闲超过 30 分钟的会话在下一次会话操作时被清扫；运行结束（含异常、取消、
-  预算耗尽）时 `Orchestrator` 会 `close_all()`，不留下孤儿 shell；
-- **Docker 后端**：会话通过 `docker run -i -t` 启动，容器同样获得 TTY，关闭时 `docker kill` 兜底；
-- **审批**：`session_open` / `session_send` 是 `high` 风险，`safety.approval="ask"` 时需要人工批准。
+- **The same guardrails**: both the `session_open` command and the `session_send` text pass `CommandPolicy` and the scope heuristic. A session is not a back door around those checks.
+- **Bounded**: at most 4 sessions per run, a 256 KB output buffer per session, and 8 KB returned per read.
+- **Reaped automatically**: a session idle for more than 30 minutes is swept on the next session operation. When the run ends (including an exception, cancellation, or an exhausted budget), the `Orchestrator` calls `close_all()` and does not leave an orphan shell.
+- **Docker backend**: a session is started with `docker run -i -t`. The container gets a TTY as well, and close falls back to `docker kill`.
+- **Approval**: `session_open` and `session_send` are `high` risk. When `safety.approval="ask"`, a human must approve them.
 
-典型用法：
+Typical use:
 
 ```text
 session_open("msfconsole -q")            -> s_ab12cd34ef
@@ -119,20 +110,19 @@ session_send(s_ab12cd34ef, "run", wait_ms=5000)
 session_close(s_ab12cd34ef)
 ```
 
-## 网络（scope 强制）
+## Network (Scope Is Enforced)
 
-所有网络工具都遵循同一顺序：**scope 授权 → 每主机限速 → 超时控制 → 截断输出 → 记录证据**。
-`scope.max_rps` 是每主机令牌桶；`port_scan` 的并发上限为 32。
+Every network tool follows the same order: **scope authorization → per-host rate limit → timeout → truncated output → recorded evidence**. `scope.max_rps` is a per-host token bucket. `port_scan` concurrency is capped at 32.
 
 ### `http_request(url, method?, headers?, body?, timeout?, max_bytes?)`
 
-- 仅 `http/https`；
-- 返回 `status`、选定响应头（敏感头脱敏）、body 摘要、长度、耗时；
-- 保存请求/响应证据（可被 finding 引用）；
-- `method` 默认 GET；支持 POST/PUT/PATCH/DELETE 等；
-- 不跟随任意协议跳转；重定向由调用方决定是否继续请求（新 URL 仍需 scope）。
+- `http` and `https` only.
+- Returns `status`, selected response headers (sensitive headers redacted), a body summary, the length, and the elapsed time.
+- Saves request and response evidence, which a finding can cite.
+- `method` defaults to GET. POST, PUT, PATCH, DELETE, and similar methods are supported.
+- It does not follow a redirect onto an arbitrary scheme. The caller decides whether to request the next URL, and that new URL still needs scope.
 
-示例：
+Example:
 
 ```json
 {"url": "http://127.0.0.1:8000/files?path=../flag.txt", "method": "GET"}
@@ -140,127 +130,121 @@ session_close(s_ab12cd34ef)
 
 ### `dns_lookup(host, record_type?)`
 
-- `A`/`AAAA` 通过 `getaddrinfo`；`PTR` 走反向解析；
-- 结果包含解析到的地址；解析失败是正常结果，不是异常。
+- `A` and `AAAA` go through `getaddrinfo`. `PTR` uses reverse lookup.
+- The result includes the resolved addresses. A failed lookup is a normal result, not an exception.
 
 ### `port_scan(host, ports?, timeout?, max_ports?, banners?)`
 
-- TCP connect 扫描；`ports` 支持 `"22,80,443"` 或 `"1-100"`；
-- 未指定时使用 `scope.ports`（默认常见 18 个端口）；
-- `max_ports` 限制总量（默认 200，且不小于配置端口数）；
-- 并发 ≤ 32，遵循 `max_rps`；`banners=true` 时做轻量 banner 读取；
-- 返回开放端口、服务猜测（可选）与耗时。
+- TCP connect scan. `ports` accepts `"22,80,443"` or `"1-100"`.
+- When omitted, `scope.ports` is used (18 common ports by default).
+- `max_ports` caps the total (default 200, and never below the number of configured ports).
+- Concurrency is at most 32, and `max_rps` is honored. `banners=true` does a lightweight banner read.
+- Returns open ports, an optional service guess, and the elapsed time.
 
 ### `tls_probe(host, port?, timeout?)`
 
-- 完成 TLS 握手并读取证书；
-- 返回 subject/issuer/SAN、有效期、是否自签名、TLS 版本/密码套件（可得时）；
-- 握手失败是正常结果。
+- Completes the TLS handshake and reads the certificate.
+- Returns subject, issuer, and SAN, the validity period, whether it is self-signed, and the TLS version and cipher suite when those are available.
+- A failed handshake is a normal result.
 
 ### `web_probe(base_url, paths?, timeout?)`
 
-- 对少量常见路径（`/`、`robots.txt`、`sitemap.xml`、`.well-known/security.txt` 等）
-  发 GET，返回状态码、长度、Content-Type；
-- 路径列表可由 `paths` 覆盖；每个请求仍需 scope 授权与限速；
-- 不是目录爆破器：字典很小，避免把演示变成噪声。
+- Sends GET to a few common paths (`/`, `robots.txt`, `sitemap.xml`, `.well-known/security.txt`, and similar) and returns the status code, length, and Content-Type.
+- `paths` can replace the path list. Each request still needs scope authorization and the rate limit.
+- It is not a directory brute-forcer. The wordlist is small, so a demo does not turn into noise.
 
 ### `web_search(query, limit?, timeout?)`
 
-- 查询 DuckDuckGo HTML 端点，返回 title/url/snippet；
-- **不是目标流量**：用于外部知识检索，不需要 scope；
-- 失败时优雅降级（返回错误结果，不重试轰炸）。
+- Queries the DuckDuckGo HTML endpoint and returns title, url, and snippet.
+- **Not target traffic**: it is for retrieving external knowledge, and it does not need scope.
+- On failure it degrades gracefully (it returns an error result and does not retry in a burst).
 
-## 黑板与资产
+## Blackboard and Assets
 
 ### `add_fact(title, body, confidence?, intent_id?, asset_values?)`
 
-- 写入 `kind=fact` 节点，status=`done`；
-- 若给出 `intent_id`，建立 `yields` 边；
-- `asset_values` 会把 fact 锚定到已存在的资产（不存在则先 upsert）。
+- Writes a `kind=fact` node with status=`done`.
+- If `intent_id` is given, creates a `yields` edge.
+- `asset_values` anchors the fact to assets that already exist (if one does not exist, it is upserted first).
 
 ### `add_finding(title, severity, body, asset_values?, intent_id?, cvss?, confidence?, evidence?)`
 
-- `severity ∈ critical/high/medium/low/info`；
-- 写入 `kind=finding` 节点（status=`done`），并把 `evidence`（字符串或结构化 dict）
-  写入 `evidence` 表；文件路径会计算 sha256（存在时）；
-- 自动建立 intent → finding 的 `proves` 边；
-- 报告与 `findings.json` 都从这里读取，**不要**把未确认的猜测写成 finding。
+- `severity ∈ critical/high/medium/low/info`.
+- Writes a `kind=finding` node (status=`done`) and writes `evidence` (a string or a structured dict) into the `evidence` table. A file path gets a sha256 when the file exists.
+- Automatically creates a `proves` edge from the intent to the finding.
+- The report and `findings.json` are both read from here. **Do not** record an unconfirmed guess as a finding.
 
 ### `add_asset(kind, value, parent_value?)` / `anchor_node(node_id, asset_value, kind?, note?)`
 
-- 资产类型：root_domain/subdomain/host/ip/service/endpoint/app/credential/artifact；
-- `parent_value` 建立资产层级（如 host → service）；
-- `anchor_node` 建立节点与资产的多对多锚点，供报告 pivot。
+- Asset kinds: root_domain, subdomain, host, ip, service, endpoint, app, credential, artifact.
+- `parent_value` builds the asset hierarchy (for example host → service).
+- `anchor_node` creates a many-to-many anchor between a node and an asset, so a report can pivot on it.
 
 ### `graph_query(view, query?, limit?)`
 
-- `view`：`overview` / `facts` / `findings` / `assets` / `intents` / `todos` / `traces`；
-- 可选子串过滤与 limit；只读；
-- 用于让模型在长会话中重新读取黑板，而不是依赖上下文记忆。
+- `view`: `overview` / `facts` / `findings` / `assets` / `intents` / `todos` / `traces`.
+- Optional substring filter and limit. Read-only.
+- Lets the model re-read the blackboard in a long session instead of relying on context memory.
 
-## 计划、轨迹与记忆
+## Plans, Traces, and Memory
 
 ### `todo_update(todo_id?, title?, status?, detail?, intent_id?)`
 
-- 无 `todo_id` 时创建新 todo；有则更新；
-- `status`：pending/active/done/blocked/dropped；
-- planner 维护计划链，worker 只更新被分配项；依赖未完成的 todo 不会被调度。
+- With no `todo_id`, creates a new todo; otherwise updates the existing one.
+- `status`: pending, active, done, blocked, dropped.
+- The planner maintains the plan chain. A worker may update only the item assigned to it. A todo whose dependencies are not finished is not scheduled.
 
 ### `search_traces(query, limit?)`
 
-- 检索**其他 task** 的轨迹（排除当前 task），避免重复踩坑；
-- 返回 agent、工具、参数摘要、结果摘要与匹配片段。
+- Searches traces from **other tasks** (the current task is excluded), so the same pitfall is not repeated.
+- Returns the agent, the tool, an argument summary, a result summary, and the matching snippet.
 
 ### `memory_store(text, tags?)` / `memory_search(query, limit?)`
 
-- 记忆是项目级持久文本，适合记录"有效技术、死路、环境怪癖"；
-- 检索使用零依赖 TF-IDF（`memory/retrieval.py`），支持中英文分词；
-- 不用于存放凭据；所有事件/报告会做 secret redaction，但不要主动写入秘密。
+- Memory is persistent text at project scope, for notes such as "what worked, dead ends, environment quirks".
+- Retrieval uses zero-dependency TF-IDF (`memory/retrieval.py`) and tokenizes both Chinese and English.
+- Do not store credentials here. Events and reports run secret redaction, but do not write a secret in on purpose.
 
-## 协作与控制
+## Collaboration and Control
 
 ### `delegate_specialist(specialist, question, context?)`
 
-- `specialist`：`researcher` / `coder` / `adviser` / `memorist`；
-- 专家只回答窄问题，不共享主 agent 的完整工具权限（由 `toolset()` 决定）；
-- 受 `budget.max_specialist_depth` 限制，防止递归委派；
-- 返回专家的文本回答；失败会作为工具失败返回。
+- `specialist`: `researcher` / `coder` / `adviser` / `memorist`.
+- A specialist answers only a narrow question and does not share the main agent's full tool permissions (`toolset()` decides that).
+- Bounded by `budget.max_specialist_depth`, which prevents recursive delegation.
+- Returns the specialist's text answer. A failure is returned as a tool failure.
 
 ### `prove_goal(summary, evidence_ids?)`
 
-- 标记 goal 节点为 `proven`，可作为完成信号；
-- `evidence_ids` 会校验是否存在；完成判定仍由 Orchestrator 复核（不能只靠模型声称）。
+- Marks the goal node `proven`, which can serve as a completion signal.
+- `evidence_ids` are checked for existence. The Orchestrator still re-checks the completion decision; the model's claim alone is not enough.
 
 ### `scope_check(target)`
 
-- 诊断工具：返回 `allowed/reason/host/port/ips`；
-- 不发起网络请求；用于模型在行动前确认边界。
+- A diagnostic tool. It returns `allowed/reason/host/port/ips`.
+- It does not make a network request. The model uses it to confirm the boundary before acting.
 
-## 审批与人工介入（已强制）
+## Approval and Human Intervention (Enforced)
 
-`safety.approval` 支持 `auto|ask|deny`。`ToolRegistry.execute` 在参数校验之后、工具运行之前
-调用 `_enforce_approval`：
+`safety.approval` is `auto`, `ask`, or `deny`. After argument validation and before the tool runs, `ToolRegistry.execute` calls `_enforce_approval`:
 
-| 模式 | `high` / `critical` 工具 | `low` / `medium` 工具 |
+| Mode | `high` / `critical` tools | `low` / `medium` tools |
 | --- | --- | --- |
-| `auto`（默认） | 直接运行（仍受 scope/策略约束） | 直接运行 |
-| `ask` | 创建审批记录、发出 `approval.requested` 事件，**阻塞等待**人工批准（最长 300 秒，超时或取消视为拒绝）；拒绝则工具失败 | 直接运行 |
-| `deny` | 立即拒绝并写审计 | 直接运行 |
+| `auto` (default) | Run immediately (still subject to scope and policy) | Run immediately |
+| `ask` | Create an approval record, emit an `approval.requested` event, and **block waiting** for human approval (at most 300 seconds; timeout or cancellation counts as denial). Denial fails the tool | Run immediately |
+| `deny` | Deny immediately and write an audit record | Run immediately |
 
-受影响的常用工具：`terminal_exec`、`file_write`、`port_scan`（均为 `high`）。
-审批记录通过 `GET /api/approvals?project_id=` 查看，`POST /api/approvals/<id>`
-（`{"approved": true|false, "reason": "..."}`）决定；控制台有审批队列。
+Tools commonly affected: `terminal_exec`, `file_write`, and `port_scan` (all `high`). Approval records are listed with `GET /api/approvals?project_id=` and decided with `POST /api/approvals/<id>` (`{"approved": true|false, "reason": "..."}`). The console has an approval queue.
 
-即使审批通过，也**不会**扩大 scope：目标授权始终由 `Scope` 独立强制。
-没有挂接审批器（例如在库中直接构造 `ToolContext`）时，`ask` 模式会安全失败（拒绝）。
+Even a granted approval does **not** widen scope: target authorization is always enforced by `Scope` on its own. If no approver is attached (for example, library code constructs a `ToolContext` directly), `ask` mode fails closed (the call is denied).
 
-## 工具开发约定
+## Conventions for Adding a Tool
 
-新增工具时：
+When you add a tool:
 
-1. 在对应模块创建 `ToolSpec`，写清参数 schema、风险、tags、`requires_scope`；
-2. 函数签名 `fn(ctx: ToolContext, kwargs: dict) -> ToolResult`；
-3. 网络 I/O 前调用 `ctx.scope.require_*`；
-4. 大输出截断（`truncate`），敏感字段用 `util.redact`；
-5. 状态变更写 `Store` 并 emit 事件/审计；
-6. 加单元测试，跑 `bash scripts/verify.sh`。
+1. Create a `ToolSpec` in the matching module. State the parameter schema, risk, tags, and `requires_scope`.
+2. The function signature is `fn(ctx: ToolContext, kwargs: dict) -> ToolResult`.
+3. Call `ctx.scope.require_*` before network I/O.
+4. Truncate large output (`truncate`), and redact sensitive fields with `util.redact`.
+5. Write state changes to the `Store` and emit an event or an audit record.
+6. Add a unit test and run `bash scripts/verify.sh`.

@@ -1,4 +1,7 @@
-"""Trilingual fixed-copy templates for ARIA-X reports (en, zh-CN, ja)."""
+"""Fixed-copy templates for ARIA-X reports (en, zh-CN, ja).
+
+The zh-CN catalog uses the English wording.
+"""
 
 from __future__ import annotations
 
@@ -193,137 +196,152 @@ REPORT_STRINGS: dict[str, dict[str, str]] = {
     },
 
     "zh-CN": {
-        "default_title": "安全评估报告 — {project}",
-        "default_project": "评估项目",
-        "meta_col_field": "字段",
-        "meta_col_value": "值",
-        "meta_engagement": "评估项目",
-        "meta_project_id": "项目 ID",
-        "meta_run_id": "运行 ID",
-        "meta_generated": "生成时间",
-        "meta_operator": "执行主体",
-        "meta_classification": "密级",
-        "default_operator": "ARIA-X 自主安全评估引擎",
-        "default_classification": "机密 — 仅限授权测试",
+        "default_title": "Security Assessment Report — {project}",
+        "default_project": "Engagement",
+        "meta_col_field": "Field",
+        "meta_col_value": "Value",
+        "meta_engagement": "Engagement",
+        "meta_project_id": "Project ID",
+        "meta_run_id": "Run ID",
+        "meta_generated": "Generated",
+        "meta_operator": "Operator",
+        "meta_classification": "Classification",
+        "default_operator": "ARIA-X autonomous engine",
+        "default_classification": "Confidential — authorized testing only",
 
-        "sec_1": "## 1. 执行摘要",
+        "sec_1": "## 1. Executive Summary",
         "exec_summary_body": (
-            "本次评估围绕目标 **{goal}** 展开。"
-            "自主评估循环共记录 {facts} 项已验证事实、{intents} 项已探索意图，"
-            "以及跨 {total_assets} 项独立资产的 {total_findings} 项安全发现。"
-            "按严重程度分布如下：{severity_summary}。"
+            "This engagement pursued the goal **{goal}**. "
+            "The autonomous loop recorded {facts} verified facts, "
+            "{intents} explored intents and "
+            "{total_findings} findings across {total_assets} distinct assets. "
+            "Actionable issues by severity: {severity_summary}."
         ),
-        "exec_top_finding": "最高严重程度问题为 **{title}**（{severity}）。",
-        "exec_no_findings": "本次评估未记录到已确认的安全发现。阴性结果与覆盖边界见第 7 节。",
+        "exec_top_finding": "The highest-severity issue is **{title}** ({severity}).",
+        "exec_no_findings": (
+            "No confirmed security findings were recorded. Negative results and the "
+            "coverage boundary are documented in §7."
+        ),
 
-        "sec_2": "## 2. 评估范围与授权说明",
-        "scope_authorized_targets": "授权目标：",
-        "scope_no_targets": "项目范围中未记录显式目标列表。",
-        "scope_excluded_targets": "排除目标：",
+        "sec_2": "## 2. Engagement Scope & Authorization",
+        "scope_authorized_targets": "Authorized targets:",
+        "scope_no_targets": "No explicit target list was recorded in the project scope.",
+        "scope_excluded_targets": "Excluded targets:",
         "scope_authorization": (
-            "授权声明：本次评估仅针对明确授权的资产执行；所有越界操作均已被范围引擎拒绝，"
-            "并记录在审计附录中。"
+            "Authorization: this engagement was executed only against explicitly authorized "
+            "assets; every out-of-scope action was refused by the scope engine and appears in "
+            "the audit appendix."
         ),
 
-        "sec_3": "## 3. 评估方法",
+        "sec_3": "## 3. Methodology",
         "methodology_body": (
-            "ARIA-X 运行基于黑板的 OODA 循环：规划器发出受约束的意图，工作器在隔离沙箱中"
-            "通过受范围限制的工具执行探索，并将每项观测写回为事实、资产或发现。"
-            "共享资产图谱与待办链在多个工作器之间持久化，使每次探测都能基于已有结果推进而非重复起点。"
-            "网络访问按请求逐次授权、按主机限速并留存证据。"
+            "ARIA-X runs a blackboard-driven OODA loop: a planner emits bounded intents, workers "
+            "execute them through scoped tools inside an isolated sandbox, and every observation "
+            "is written back as a fact, asset or finding. The shared asset graph and todo chain "
+            "persist across workers, so each probe builds on the previous one instead of "
+            "restarting. Network access is authorized per request, rate-limited per host and "
+            "recorded as evidence."
         ),
-        "methodology_footprint": "执行轨迹统计：{traces} 条过程轨迹、{edges} 条图谱边、{todos} 项计划条目。",
+        "methodology_footprint": (
+            "Execution footprint: {traces} process traces, {edges} graph "
+            "edges, {todos} plan items."
+        ),
 
-        "sec_4": "## 4. 安全发现",
-        "findings_none": "_本次评估未确认任何安全发现。_",
-        "finding_col_attr": "属性",
-        "finding_col_val": "值",
-        "finding_attr_severity": "严重程度",
+        "sec_4": "## 4. Findings",
+        "findings_none": "_No findings were confirmed during this engagement._",
+        "finding_col_attr": "Attribute",
+        "finding_col_val": "Value",
+        "finding_attr_severity": "Severity",
         "finding_attr_cvss": "CVSS",
-        "finding_attr_confidence": "置信度",
-        "finding_attr_id": "发现 ID",
-        "finding_attr_intent": "由意图证实",
-        "finding_no_detail": "_暂无详细说明。_",
-        "finding_evidence_heading": "**证据**",
-        "ev_col_kind": "类型",
-        "ev_col_ref": "引用路径",
+        "finding_attr_confidence": "Confidence",
+        "finding_attr_id": "Finding ID",
+        "finding_attr_intent": "Proven by intent",
+        "finding_no_detail": "_No detail recorded._",
+        "finding_evidence_heading": "**Evidence**",
+        "ev_col_kind": "Kind",
+        "ev_col_ref": "Reference",
         "ev_col_sha256": "SHA-256",
-        "ev_col_excerpt": "摘要",
+        "ev_col_excerpt": "Excerpt",
 
-        "sec_5": "## 5. 攻击路径叙述",
-        "graph_title": "攻击路径图",
-        "attack_none": "未记录攻击路径：本次评估既未产生意图也未产生血缘边。",
-        "attack_intro": "以下每条记录对应一个决策点：探索意图、观测结果及证实内容。血缘关系直接来自图谱边。",
-        "attack_intent_line": "{index}. **{title}** — 状态：{status}。",
-        "attack_observed": "   - 观测结果：{items}",
-        "attack_findings": "   - 相关发现：{items}",
-        "attack_no_downstream": "   - 未记录下游节点（阴性结果或探索尚未完成）。",
-        "attack_cross_links": "分析过程中记录的交叉关联：",
+        "sec_5": "## 5. Attack Path Narrative",
+        "graph_title": "Attack path diagram",
+        "attack_none": "No attack path was recorded: the engagement produced neither intents nor lineage edges.",
+        "attack_intro": (
+            "Each item below is one decision point: the intent, what it observed and what it "
+            "proved. Lineage is taken directly from graph edges."
+        ),
+        "attack_intent_line": "{index}. **{title}** — status: {status}.",
+        "attack_observed": "   - Observed: {items}",
+        "attack_findings": "   - Findings: {items}",
+        "attack_no_downstream": "   - No downstream node recorded (negative or incomplete exploration).",
+        "attack_cross_links": "Cross-links recorded during analysis:",
 
-        "sec_6": "## 6. 资产清单",
-        "asset_col_value": "资产值",
-        "asset_col_kind": "类型",
-        "asset_col_parent": "父级资产",
-        "asset_col_first_seen": "首次发现",
-        "assets_none": "_未记录到任何资产。_",
+        "sec_6": "## 6. Asset Inventory",
+        "asset_col_value": "Value",
+        "asset_col_kind": "Kind",
+        "asset_col_parent": "Parent",
+        "asset_col_first_seen": "First seen",
+        "assets_none": "_No assets were recorded._",
 
-        "sec_7": "## 7. 覆盖范围与局限性",
-        "cov_facts": "- 已验证事实：{count}",
-        "cov_intents": "- 已探索意图：{count}（其中 {open_count} 项仍处于开放状态）",
-        "cov_assets": "- 已发现资产：{count}",
-        "cov_findings": "- 安全发现：{count}（{breakdown}）",
-        "cov_denied": "- 越界或被策略拒绝的操作：{count}（已审计，未执行）",
+        "sec_7": "## 7. Coverage & Limitations",
+        "cov_facts": "- Verified facts: {count}",
+        "cov_intents": "- Intents explored: {count} ({open_count} still open)",
+        "cov_assets": "- Assets discovered: {count}",
+        "cov_findings": "- Findings: {count} ({breakdown})",
+        "cov_denied": "- Out-of-scope or policy-refused actions: {count} (audited, not executed)",
         "cov_limitations": (
-            "局限性：本评估仅反映截至报告生成时间戳为止上述工具所记录的结果。"
-            "任何不可用、触发限速或超出授权范围的服务均未纳入覆盖。"
-            "未发现问题并不等同于不存在漏洞；未关闭的意图标记了尚存的不确定性。"
+            "Limitations: the assessment reflects the tool results recorded above as of the "
+            "generation timestamp. Any service that was unavailable, rate-limited or outside "
+            "the authorized scope is not covered. Absence of a finding is not proof of absence "
+            "of a vulnerability; open intents mark the remaining uncertainty."
         ),
 
-        "sec_8": "## 8. 附录",
-        "sec_8_1": "### 8.1 证据索引",
-        "app_ev_col_finding": "所属发现",
-        "app_ev_col_kind": "类型",
-        "app_ev_col_ref": "引用路径",
+        "sec_8": "## 8. Appendix",
+        "sec_8_1": "### 8.1 Evidence index",
+        "app_ev_col_finding": "Finding",
+        "app_ev_col_kind": "Kind",
+        "app_ev_col_ref": "Reference",
         "app_ev_col_sha256": "SHA-256",
-        "app_ev_none": "_未向发现附加任何证据记录。_",
+        "app_ev_none": "_No evidence records were attached to findings._",
 
-        "sec_8_2": "### 8.2 计划状态",
+        "sec_8_2": "### 8.2 Plan state",
         "app_todo_col_pos": "#",
-        "app_todo_col_status": "状态",
-        "app_todo_col_title": "标题",
-        "app_todo_none": "_未记录待办计划链。_",
+        "app_todo_col_status": "Status",
+        "app_todo_col_title": "Title",
+        "app_todo_none": "_No todo chain was recorded._",
 
-        "sec_8_3": "### 8.3 过程轨迹（近期）",
-        "app_trace_col_task": "任务",
-        "app_trace_col_agent": "代理",
-        "app_trace_col_kind": "类型",
-        "app_trace_col_tool": "工具",
-        "app_trace_col_content": "内容",
-        "app_trace_none": "_未记录过程轨迹。_",
+        "sec_8_3": "### 8.3 Process trace (recent)",
+        "app_trace_col_task": "Task",
+        "app_trace_col_agent": "Agent",
+        "app_trace_col_kind": "Kind",
+        "app_trace_col_tool": "Tool",
+        "app_trace_col_content": "Content",
+        "app_trace_none": "_No traces were recorded._",
 
-        "sec_8_4": "### 8.4 审计决策（近期）",
-        "app_audit_col_time": "时间",
-        "app_audit_col_actor": "执行者",
-        "app_audit_col_action": "动作",
-        "app_audit_col_decision": "决策",
-        "app_audit_col_target": "目标",
-        "app_audit_none": "_未记录审计条目。_",
+        "sec_8_4": "### 8.4 Audit (recent decisions)",
+        "app_audit_col_time": "Time",
+        "app_audit_col_actor": "Actor",
+        "app_audit_col_action": "Action",
+        "app_audit_col_decision": "Decision",
+        "app_audit_col_target": "Target",
+        "app_audit_none": "_No audit entries were recorded._",
 
         "md_footer": (
-            "_由 ARIA-X {version} 生成 — {generated_at}。"
-            "本报告为审计产物；相关证据文件已一同保存在同级目录中。_"
+            "_Generated by ARIA-X {version} — "
+            "{generated_at}. This report is an audit artifact; evidence files are stored "
+            "alongside it._"
         ),
-        "html_eyebrow": "ARIA-X · 授权安全评估",
-        "html_meta_run": "运行 {run_id}",
-        "html_meta_generated": "生成于 {generated_at}",
-        "html_stat_assets": "资产",
-        "html_stat_facts": "事实",
-        "html_stat_sev_critical": "严重",
-        "html_stat_sev_high": "高危",
-        "html_stat_sev_medium": "中危",
-        "html_stat_sev_low": "低危",
-        "html_stat_sev_info": "信息",
-        "html_footer": "由 ARIA-X {version} 生成 · AGPL-3.0-or-later · 机密文件",
+        "html_eyebrow": "ARIA-X · Authorized Security Assessment",
+        "html_meta_run": "run {run_id}",
+        "html_meta_generated": "generated {generated_at}",
+        "html_stat_assets": "assets",
+        "html_stat_facts": "facts",
+        "html_stat_sev_critical": "critical",
+        "html_stat_sev_high": "high",
+        "html_stat_sev_medium": "medium",
+        "html_stat_sev_low": "low",
+        "html_stat_sev_info": "info",
+        "html_footer": "Generated by ARIA-X {version} · AGPL-3.0-or-later · confidential",
     },
 
     "ja": {

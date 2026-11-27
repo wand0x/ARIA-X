@@ -1,197 +1,164 @@
-# ARIA-X 安全模型与合法使用
+# ARIA-X Security Model and Legitimate Use
 
-## 0. 授权使用（先读这一节）
+## 0. Authorized Use (Read This Section First)
 
-ARIA-X 是**进攻性安全测试工具**。它会在你配置的范围内主动发送网络请求、执行命令、
-尝试发现和验证漏洞。
+ARIA-X is an **offensive security testing tool**. Within the scope you configure, it actively sends network requests, executes commands, and tries to discover and verify vulnerabilities.
 
-**你只能对以下系统使用 ARIA-X：**
+**You may use ARIA-X only on the following systems:**
 
-- 你自己拥有并控制的系统；
-- 你所在组织明确授权你测试的系统；
-- 有书面授权（委托书、渗透测试合同、漏洞赏金项目 scope）覆盖的系统。
+- Systems that you own and control;
+- Systems that your organization has explicitly authorized you to test;
+- Systems covered by written authorization (a letter of authorization, a penetration-testing contract, or a bug-bounty program scope).
 
-**未授权访问计算机系统在大多数司法辖区是刑事犯罪**，即使只是"看一眼"或"没有造成损害"。
-"公网可见"不等于"可以测试"；"扫描不算入侵"是错误的；"客户口头说过可以"通常不足以
-构成授权。
+**Unauthorized access to a computer system is a criminal offense in most jurisdictions**, even if you only "take a look" or "cause no damage". "Visible on the public internet" is not "allowed to test"; "scanning is not intrusion" is wrong; "the customer said it was okay verbally" is usually not enough to constitute authorization.
 
-使用 ARIA-X 前请确认：
+Before using ARIA-X, confirm:
 
-1. 你有书面授权，且授权范围（域名、IP、端口、时间窗、禁止动作）明确；
-2. 你理解目标可能是生产系统，测试可能导致宕机或数据损坏；
-3. 你知道所在司法辖区关于漏洞研究、数据保护与计算机滥用的法律；
-4. 你已经和系统所有者约定联络人、停止条件与升级路径。
+1. You have written authorization, and the authorized scope (domains, IPs, ports, time window, prohibited actions) is explicit;
+2. You understand the target may be a production system, and testing may cause an outage or data damage;
+3. You know the laws of your jurisdiction on vulnerability research, data protection, and computer misuse;
+4. You and the system owner have agreed on a point of contact, stop conditions, and an escalation path.
 
-**作者与贡献者不对任何未授权或滥用行为负责。** ARIA-X 按 AGPL-3.0 以 "AS IS" 提供，
-不附带任何担保。
+**The authors and contributors are not responsible for any unauthorized or abusive use.** ARIA-X is provided "AS IS" under AGPL-3.0, with no warranty of any kind.
 
-## 1. 授权在代码中如何强制
+## 1. How Authorization Is Enforced in Code
 
-### 1.1 启动门
+### 1.1 Startup Gate
 
-`AriaXConfig.require_authorization()` 在每次 engagement 开始前检查：
+`AriaXConfig.require_authorization()` runs before every engagement starts:
 
 ```toml
 [scope]
-authorized = true          # 必须显式为 true
-targets = ["127.0.0.1"]    # 必须非空
+authorized = true          # must be explicitly true
+targets = ["127.0.0.1"]    # must be non-empty
 ```
 
-缺一即抛 `ConfigError`，不会创建 run。项目 scope 若显式 `authorized=false` 也会被拒绝。
-CLI 的 `aria-x run` 与 `Engagement.run/start_background` 都走同一检查。
+If either is missing, it raises `ConfigError` and does not create a run. A project scope that explicitly sets `authorized=false` is also rejected. The CLI `aria-x run` and `Engagement.run/start_background` both go through the same check.
 
-### 1.2 目标级 scope
+### 1.2 Target-Level Scope
 
-`src/aria_x/tools/scope.py` 支持：
+`src/aria_x/tools/scope.py` supports:
 
-- 精确主机：`127.0.0.1`、`app.example.test`；
-- 通配域名：`*.staging.example.test`（含自身与所有子域）；
-- CIDR：`10.10.0.0/24`；
-- 主机 + 端口：`db.example.test:5432`；
-- URL 前缀：`https://app.example.test:8443/api`；
-- `deny` 规则优先于 `allow`；
-- `allow_private` / `allow_loopback` 控制私网与回环；
-- `max_rps` 每主机限速。
+- Exact hosts: `127.0.0.1`, `app.example.test`;
+- Wildcard domains: `*.staging.example.test` (the name itself and every subdomain);
+- CIDR: `10.10.0.0/24`;
+- Host plus port: `db.example.test:5432`;
+- URL prefixes: `https://app.example.test:8443/api`;
+- `deny` rules take precedence over `allow`;
+- `allow_private` / `allow_loopback` control private networks and loopback;
+- `max_rps` rate-limits each host.
 
-网络工具（`http_request`、`dns_lookup`、`port_scan`、`tls_probe`、`web_probe`）在
-**发送第一个包之前**调用 `require_url` / `require_host`。违规变成工具失败 + 审计记录，
-而不是静默放行。
+Network tools (`http_request`, `dns_lookup`, `port_scan`, `tls_probe`, `web_probe`) call `require_url` / `require_host` **before the first packet is sent**. A violation becomes a tool failure plus an audit record, not a silent allow.
 
-> **局限**：`terminal_exec` 内的工具（如 `nmap`）只能通过命令中的字面 URL/IP 做启发式
-> 检查。间接寻址、脚本内目标、DNS 重绑定等无法被这层完全拦截。真正的隔离边界是
-> **Docker 沙箱 + 网络策略 + 人工审查**，不是 scope 正则。
+> **Limitation**: Tools inside `terminal_exec` (such as `nmap`) can only be checked heuristically against literal URLs or IPs in the command. Indirect addressing, targets inside scripts, DNS rebinding, and similar cases cannot be fully stopped at this layer. The real isolation boundary is a **Docker sandbox + network policy + human review**, not a scope regex.
 
 
-### 1.3 高风险工具的审批门
+### 1.3 Approval Gate for High-Risk Tools
 
-`safety.approval` 在 `ToolRegistry.execute` 中强制执行，作用于 `risk` 为 `high` 或
-`critical` 的工具（当前包括 `terminal_exec`、`file_write`、`port_scan`）：
+`safety.approval` is enforced inside `ToolRegistry.execute` and applies to tools whose `risk` is `high` or `critical` (currently `terminal_exec`, `file_write`, and `port_scan`):
 
-| 模式 | 行为 |
+| Mode | Behavior |
 | --- | --- |
-| `auto`（默认） | 直接执行，仍受 scope、workdir jail 与命令策略约束 |
-| `ask` | 写入审批记录、发出 `approval.requested` 事件，并**阻塞等待**人工批准（最长 300 秒，超时/取消视为拒绝）；拒绝则工具返回失败 |
-| `deny` | 直接拒绝并写审计，不执行 |
+| `auto` (default) | Execute immediately, still subject to scope, the workdir jail, and command policy |
+| `ask` | Write an approval record, emit an `approval.requested` event, and **block waiting** for a human approval (at most 300 seconds; timeout or cancellation counts as denial); on denial the tool returns failure |
+| `deny` | Deny immediately, write an audit record, and do not execute |
 
-审批通过不会扩大 scope，也不会绕过命令策略。若没有挂接审批器（例如库调用方自建
-`ToolContext`），`ask` 模式会安全失败而不是静默放行。审批决定可在 Web 控制台
-或 `POST /api/approvals/<id>` 完成，全部写入审计表。
+An approval does not widen scope and does not bypass command policy. If no approver is attached (for example, a library caller builds its own `ToolContext`), `ask` mode fails closed instead of allowing silently. Decisions can be made in the Web console or via `POST /api/approvals/<id>`, and every decision is written to the audit table.
 
-生产环境建议：对真实目标使用 `approval = "ask"`，至少对 `terminal_exec` 与
-`file_write` 保留人工确认；demo 与自动化测试可用 `auto`。
+Production guidance: use `approval = "ask"` against real targets, and keep a human confirmation at least for `terminal_exec` and `file_write`; demos and automated tests may use `auto`.
 
-> **局限**：审批是"人在回路"，不是技术隔离。审批者可能疲劳、误点或在不了解上下文时
-> 放行；高风险 engagement 应配合 Docker 沙箱、网络分段与时间窗限制。
+> **Limitation**: Approval is a human in the loop, not technical isolation. The approver may be tired, mis-click, or allow an action without understanding the context. A high-risk engagement should also use a Docker sandbox, network segmentation, and a time window.
 
-### 1.4 沙箱后端边界（`local` 与 `docker`）
+### 1.4 Sandbox Backend Boundaries (`local` and `docker`)
 
-- **`local` 后端（宿主权限，无 OS 级文件系统隔离）**：当 `sandbox.backend = "local"` 时，
-  `terminal_exec` 与交互式 `session_*` 命令以**当前操作系统用户的权限**运行，且子进程保留
-  `HOME` 环境变量。工作目录校验仅限制命令启动时的 `cwd`（以及 `file_*` 工具的路径 jail），
-  `CommandPolicy` 也只拦截已知破坏性指令，**不提供操作系统级文件系统隔离**——模型执行的
-  Shell 命令理论上仍可读取当前用户有权限访问的文件（如 `~/.ssh`、`~/.aws` 或浏览器数据）。
-- **隔离建议**：需要真正的文件系统与进程隔离时，请使用 `sandbox.backend = "docker"`（非 root、
-  `network = "none"`、不挂载 `/var/run/docker.sock`），或在专用低权限账号/隔离虚拟机中运行。
+- **`local` backend (host privileges, no OS-level filesystem isolation)**: When `sandbox.backend = "local"`, `terminal_exec` and interactive `session_*` commands run with **the privileges of the current operating-system user**, and child processes keep the `HOME` environment variable. The work-directory check only constrains `cwd` at command start (and the path jail of `file_*` tools). `CommandPolicy` only blocks known destructive commands and **does not provide operating-system-level filesystem isolation** — a shell command the model runs can still, in principle, read any file the current user is allowed to access (such as `~/.ssh`, `~/.aws`, or browser data).
+- **Isolation guidance**: When you need real filesystem and process isolation, use `sandbox.backend = "docker"` (non-root, `network = "none"`, and do not mount `/var/run/docker.sock`), or run under a dedicated low-privilege account or in an isolated virtual machine.
 
-## 2. 威胁模型
+## 2. Threat Model
 
-### 2.1 我们要防的
+### 2.1 What We Defend Against
 
-| 威胁 | 缓解 |
+| Threat | Mitigation |
 | --- | --- |
-| 误测未授权目标 | 启动门 + scope + deny + 默认只允许回环/私网；文档反复强调 |
-| 模型"自作主张"扩张范围 | planner 独占意图、scope 在工具层强制、工具集按角色收敛 |
-| 破坏性命令 | `CommandPolicy` 黑名单（`rm -rf /`、`mkfs`、`dd of=/dev/*`、fork bomb、关机、`curl|bash`、`history -c` 等）；高风险工具另受审批门控制 |
-| 文件系统越界 | `file_*` 工具严格限制在 engagement workdir（拒绝穿越与符号链接逃逸）；终端仅限制启动 `cwd`，`local` 后端不提供 OS 级文件系统隔离（强隔离需用 `docker`） |
-| 密钥泄漏到日志/报告 | 事件/轨迹/报告写出前 `util.redact`；`public_dict()` 使用显式公开字段白名单并全量遮罩密钥；`save()`/`export_public()` 仅导出不可加载的脱敏快照，真实本地保存需显式 `save_private()`（`0o600`）；SSE 仅用请求头认证，HTTP 日志按路由模板归一化并剥离敏感查询参数与原始异常正文 |
-| Web 控制台被远程滥用 | 默认只绑定 `127.0.0.1`；可选 Bearer token；建议反向代理 + TLS |
-| 预算失控/无限循环 | 时间、LLM 调用、token、工具调用、intent 总数、并发、专家深度全部受限 |
-| 进程残留 | `Engagement.close()` 先取消、再 join（10s 上限）；demo target 处理 SIGTERM |
-| 报告编造 | 报告从图数据渲染；模型只写摘要文本；finding 必须落库 |
+| Accidentally testing an unauthorized target | Startup gate + scope + deny + loopback and private networks allowed by default; the docs repeat this |
+| The model expanding scope on its own | The planner alone owns intents; scope is enforced at the tool layer; toolsets are narrowed by role |
+| Destructive commands | `CommandPolicy` blacklist (`rm -rf /`, `mkfs`, `dd of=/dev/*`, fork bomb, shutdown, `curl|bash`, `history -c`, and similar); high-risk tools are also controlled by the approval gate |
+| Filesystem escape | `file_*` tools are strictly limited to the engagement workdir (path traversal and symlink escape are rejected); the terminal only constrains the starting `cwd`; the `local` backend does not provide OS-level filesystem isolation (strong isolation requires `docker`) |
+| Secrets leaking into logs or reports | `util.redact` runs before events, traces, and reports are written; `public_dict()` uses an explicit public-field allowlist and masks secrets in full; `save()` / `export_public()` export only a redacted snapshot that cannot be loaded; a real local save requires an explicit `save_private()` (`0o600`); SSE authenticates only with request headers; HTTP logs are normalized by route template and strip sensitive query parameters and raw exception bodies |
+| Remote abuse of the Web console | Binds only to `127.0.0.1` by default; optional Bearer token; a reverse proxy plus TLS is recommended |
+| Runaway budget or an infinite loop | Time, LLM calls, tokens, tool calls, total intent count, concurrency, and specialist depth are all bounded |
+| Leftover processes | `Engagement.close()` cancels first, then joins (10s cap); the demo target handles SIGTERM |
+| Fabricated reports | Reports are rendered from graph data; the model writes only summary text; a finding must be stored |
 
-### 2.2 我们不防的
+### 2.2 What We Do Not Defend Against
 
-- **恶意模型/被投毒的模型服务**：provider 返回的内容会被当作不可信输入，但 ARIA-X 不会
-  执行模型给出的 shell 以外的东西；工具参数仍受 schema、scope、策略约束。若模型服务本身
-  被攻陷，它可以看到发送给它的上下文（包括目标数据）。
-- **目标对测试者的反制**：恶意目标可以返回针对模型的 prompt injection。ARIA-X 把工具输出
-  作为数据而非指令，但没有专门的 prompt-injection 分类器；高风险场景应由人工监督。
-- **供应链**：ARIA-X 无第三方 Python 依赖，但仍依赖 CPython、操作系统与可选 Docker 镜像。
-  请自行校验基础镜像与工具链。
-- **物理/主机层攻击**：ARIA-X 不是沙箱逃逸防护产品；在不可信主机上运行本身就不安全。
+- **A malicious or poisoned model service**: Content returned by the provider is treated as untrusted input, but ARIA-X will not execute anything the model supplies other than shell; tool arguments are still constrained by schema, scope, and policy. If the model service itself is compromised, it can see the context sent to it (including target data).
+- **The target countering the tester**: A malicious target can return prompt injection aimed at the model. ARIA-X treats tool output as data, not instructions, but it has no dedicated prompt-injection classifier; a human should supervise high-risk scenarios.
+- **Supply chain**: ARIA-X has no third-party Python dependencies, but it still depends on CPython, the operating system, and optional Docker images. Verify base images and the toolchain yourself.
+- **Physical and host-layer attacks**: ARIA-X is not a product that prevents sandbox escape; running it on an untrusted host is itself unsafe.
 
-## 3. 最小权限部署清单
+## 3. Least-Privilege Deployment Checklist
 
-- [ ] `scope.targets` 只列授权资产；用 `deny` 排除共享基础设施；
-- [ ] `scope.authorized=true` 只在本次授权窗口内设置；
-- [ ] `safety.approval="ask"`，至少覆盖 `terminal_exec` / `file_write` / `port_scan`；
-- [ ] `sandbox.backend="docker"`，镜像固定版本，`network` 按需（默认 `none`）；
-- [ ] 不使用 `--privileged`，不挂载 `/var/run/docker.sock`，不挂载宿主根目录；
-- [ ] `server.host="127.0.0.1"`；远程访问走 SSH 隧道或带 TLS 的反向代理；
-- [ ] 设置 `ARIA_X_AUTH_TOKEN`（长随机值），不要用默认值；
-- [ ] `ARIA_X_API_KEY` 只放环境变量，不写进仓库；定期轮换；
-- [ ] `data/`、`runs/` 权限限制为运行用户；报告可能含目标数据；
-- [ ] 运行前 `python -m aria_x doctor --llm`，确认配置与连通性；
-- [ ] 运行中通过 `aria-x serve` 观察事件与预算；异常时 `POST /api/runs/<id>/stop`；
-- [ ] 结束后审查 `runs/<run_id>/` 与 `data/aria-x.db`，按合同要求保存/销毁。
+- [ ] List only authorized assets in `scope.targets`; use `deny` to exclude shared infrastructure;
+- [ ] Set `scope.authorized=true` only inside this authorization window;
+- [ ] `safety.approval="ask"`, covering at least `terminal_exec` / `file_write` / `port_scan`;
+- [ ] `sandbox.backend="docker"`, pin the image version, and set `network` as needed (default `none`);
+- [ ] Do not use `--privileged`, do not mount `/var/run/docker.sock`, and do not mount the host root;
+- [ ] `server.host="127.0.0.1"`; reach it remotely through an SSH tunnel or a reverse proxy with TLS;
+- [ ] Set `ARIA_X_AUTH_TOKEN` to a long random value; do not use a default;
+- [ ] Keep `ARIA_X_API_KEY` only in the environment, not in the repository; rotate it regularly;
+- [ ] Restrict `data/` and `runs/` to the user that runs the process; reports may contain target data;
+- [ ] Before a run, `python -m aria_x doctor --llm`, and confirm configuration and connectivity;
+- [ ] During a run, watch events and budget through `aria-x serve`; on an anomaly, `POST /api/runs/<id>/stop`;
+- [ ] Afterward, review `runs/<run_id>/` and `data/aria-x.db`, and retain or destroy them as the contract requires.
 
-## 4. 秘密处理
+## 4. Secret Handling
 
-- `llm.api_key` 可来自 `ARIA_X_API_KEY`；`server.auth_token` 可来自 `ARIA_X_AUTH_TOKEN`。
-- `util.redact` 覆盖：`Authorization: Bearer/Basic ...`、`api_key/token/secret/password/
-  session=...`、`sk-...`、AWS `AKIA...`、GitHub `ghp_/gho_/...`。
-- 事件总线默认开启 redaction（`safety.redact_secrets=true`）；JSONL、SSE、报告与
-  `public_dict()` 使用同一逻辑。
-- **redaction 是尽力而为**：自定义密钥格式、图片/二进制内容、模型在自由文本中复述的
-  秘密可能漏过。不要把 ARIA-X 当作 DLP 产品；敏感 engagement 的报告应人工复核后再分发。
-- 不要把真实凭据写入示例配置、scenario JSON 或测试夹具。
+- `llm.api_key` may come from `ARIA_X_API_KEY`; `server.auth_token` may come from `ARIA_X_AUTH_TOKEN`.
+- `util.redact` covers: `Authorization: Bearer/Basic ...`, `api_key/token/secret/password/session=...`, `sk-...`, AWS `AKIA...`, and GitHub `ghp_/gho_/...`.
+- The event bus turns redaction on by default (`safety.redact_secrets=true`); JSONL, SSE, reports, and `public_dict()` use the same logic.
+- **Redaction is best-effort**: custom secret formats, images, binary content, and secrets the model restates in free text can slip through. Do not treat ARIA-X as a DLP product; a human should review the report of a sensitive engagement before it is distributed.
+- Do not put real credentials into example configuration, scenario JSON, or test fixtures.
 
-## 5. Demo target 的安全设计
+## 5. Security Design of the Demo Target
 
-`examples/demo_target.py` 故意包含三个弱点，但被限制为**无害**：
+`examples/demo_target.py` deliberately contains three weaknesses, but they are constrained to be **harmless**:
 
-1. **路径穿越**：`/files?path=../flag.txt` 使用朴素 `os.path.join`，会逃出 `public/`；
-   但处理器随后只允许读取两个文件：`public/` 子树内文件与生成的 `flag.txt`。
-   `/etc/passwd` 等任意路径返回 404。
-2. **缺失安全响应头**：没有 CSP/HSTS/X-Frame-Options/nosniff——用于演示扫描器发现项。
-3. **`/debug` 信息泄露**：返回假版本号与 `debug=true`。
+1. **Path traversal**: `/files?path=../flag.txt` uses a naive `os.path.join` and will escape `public/`; the handler then allows reads of only two things: files under the `public/` subtree and the generated `flag.txt`. Arbitrary paths such as `/etc/passwd` return 404.
+2. **Missing security response headers**: there is no CSP, HSTS, X-Frame-Options, or nosniff — this exists so a scanner has something to find.
+3. **Information disclosure at `/debug`**: it returns a fake version and `debug=true`.
 
-其他约束：
+Other constraints:
 
-- 只绑定 `127.0.0.1`，不接受外部连接；
-- 每次启动创建一次性临时根目录，退出即丢弃；
-- 不执行命令、不写系统路径、不发起网络请求；
-- 支持 SIGTERM/SIGINT 干净退出；
-- `--json` 只向 stdout 输出一行启动 JSON，日志走 stderr。
+- It binds only to `127.0.0.1` and does not accept external connections;
+- Each start creates a one-shot temporary root directory, which is discarded on exit;
+- It does not execute commands, write system paths, or make network requests;
+- It exits cleanly on SIGTERM and SIGINT;
+- `--json` writes one line of startup JSON to stdout; logs go to stderr.
 
-**不要**把 demo target 暴露到公网，也不要在其中放入真实数据。
+**Do not** expose the demo target to the public internet, and do not put real data in it.
 
-## 6. 漏洞披露（针对 ARIA-X 自身）
+## 6. Vulnerability Disclosure (for ARIA-X Itself)
 
-如果你发现 ARIA-X 的安全问题：
+If you find a security issue in ARIA-X:
 
-1. **不要**立即公开可复现细节或 exploit；
-2. 通过项目维护者提供的私密渠道报告（仓库 SECURITY 联系方式 / 维护者邮件）；
-3. 提供：受影响版本、复现步骤、影响评估、建议修复；
-4. 给维护者合理的修复窗口（通常 90 天），期间不要公开；
-5. 修复发布后，按双方约定致谢。
+1. **Do not** publish reproducible details or an exploit immediately;
+2. Report it through a private channel the maintainers provide (the repository SECURITY contact, or the maintainer's email);
+3. Include the affected version, reproduction steps, an impact assessment, and a suggested fix;
+4. Give the maintainers a reasonable window to fix it (usually 90 days); do not publish during that window;
+5. After the fix is released, credit them as both sides agreed.
 
-范围包括：scope 绕过、沙箱逃逸、审批绕过、认证绕过、路径穿越、命令注入、
-秘密泄漏、报告 XSS、SSE/HTTP 拒绝服务等。
+In scope: scope bypass, sandbox escape, approval bypass, authentication bypass, path traversal, command injection, secret leakage, report XSS, denial of service against SSE or HTTP, and similar issues.
 
-## 7. 数据与隐私
+## 7. Data and Privacy
 
-- ARIA-X 会把目标响应、命令输出、证据摘要写入 `data/aria-x.db`、`data/events.jsonl` 与
-  `runs/`。这些数据可能包含个人信息、凭据或商业机密。
-- 运行前确认数据保留期限与存储位置符合授权合同与当地法律（GDPR、个人信息保护法等）。
-- 删除一次 engagement：停止服务后删除对应 `runs/<run_id>/`，并用 `aria-x export` 备份
-  需要保留的结论；`data/aria-x.db` 是共享库，删除单个项目需要 SQL（当前没有 CLI 子命令）。
-- 不要把包含真实目标数据的报告提交到公开仓库。
+- ARIA-X writes target responses, command output, and evidence summaries to `data/aria-x.db`, `data/events.jsonl`, and `runs/`. That data may contain personal information, credentials, or trade secrets.
+- Before a run, confirm that the retention period and storage location comply with the authorization contract and local law (GDPR, personal-information protection laws, and similar).
+- To delete one engagement: stop the service, delete the corresponding `runs/<run_id>/`, and use `aria-x export` to back up conclusions you need to keep. `data/aria-x.db` is a shared database; deleting a single project requires SQL (there is no CLI subcommand for it today).
+- Do not commit a report that contains real target data to a public repository.
 
-## 8. 合规提示
+## 8. Compliance Notes
 
-- **AGPL-3.0**：通过网络提供 ARIA-X 服务时，必须向用户提供对应源码（§13）。建议在控制台
-  页脚放置 "Source" 链接指向你的仓库镜像。
-- **出口管制/制裁**：某些司法辖区限制渗透测试工具或加密工具的出口；请自行确认。
-- **合同优先**：授权合同中的限制（禁止 DoS、禁止数据外带、禁止社会工程等）高于 ARIA-X 的
-  任何默认行为；必要时通过 `deny`、`budget`、`sandbox.network="none"` 收紧。
+- **AGPL-3.0**: If you offer ARIA-X over a network, you must make the corresponding source available to users (§13). Put a "Source" link in the console footer that points at your repository mirror.
+- **Export controls and sanctions**: Some jurisdictions restrict export of penetration-testing tools or cryptographic tools; confirm this yourself.
+- **The contract comes first**: Restrictions in the authorization contract (no DoS, no data exfiltration, no social engineering, and similar) override any default behavior of ARIA-X. Tighten with `deny`, `budget`, and `sandbox.network="none"` when you need to.

@@ -388,9 +388,9 @@ assert.strictEqual(ctx.document.documentElement.lang, "en");
 ctx.__TEST__.setLanguage("zh-CN");
 assert.strictEqual(ctx.document.documentElement.lang, "zh-CN");
 assert.strictEqual(storage.get("aria-x.lang"), "zh-CN");
-assert.strictEqual(byId["tab-overview-label"].textContent, "概览");
-assert.strictEqual(byId["settings-title-label"].textContent, "设置");
-assert(byId["report-meta"].textContent.includes("运行 r1"), byId["report-meta"].textContent);
+assert.strictEqual(byId["tab-overview-label"].textContent, "Overview");
+assert.strictEqual(byId["settings-title-label"].textContent, "Settings");
+assert(byId["report-meta"].textContent.includes("Run r1"), byId["report-meta"].textContent);
 assert.strictEqual(byId["report-frame"].srcdoc, "<html><body>Original Report Body Unchanged</body></html>");
 
 ctx.__TEST__.setLanguage("ja");

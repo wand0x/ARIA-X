@@ -6,7 +6,7 @@ contributions are focused, tested and easy to review.
 ## Before you start
 
 - Read the [README](README.md), [architecture notes](docs/ARCHITECTURE.md) and
-  [usage boundaries](README.md#许可与免责声明).
+  [usage boundaries](README.md#license--usage-boundaries).
 - For security issues, follow [SECURITY.md](SECURITY.md) instead of opening a public issue.
 - By contributing you agree that your contribution is licensed under AGPL-3.0-or-later.
 

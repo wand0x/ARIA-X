@@ -1,16 +1,16 @@
 <p align="right">
-  <strong>简体中文</strong> · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a>
+  <strong>English</strong> · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a>
 </p>
 
 <p align="center">
-  <img src="assets/console-shield-logo.svg" width="110" alt="ARIA-X 控制台统一盾牌标志">
+  <img src="assets/console-shield-logo.svg" width="110" alt="ARIA-X unified console shield logo">
 </p>
 
 <h1 align="center">ARIA-X</h1>
 
 <p align="center">
   <strong>Autonomous Reasoning &amp; Investigation Agent, eXtended</strong><br>
-  从自主推理到可核验的发现：安全研究、执行编排与证据报告一体化
+  Evidence-driven security research, from autonomous planning to auditable findings and reports
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <sub>本项目使用 <strong>DeepSeek Harness（DeepSeek-V4.1-Flash-1017）</strong> 辅助开发。</sub>
+  <sub>Developed with assistance from <strong>DeepSeek Harness (DeepSeek-V4.1-Flash-1017)</strong>.</sub>
 </p>
 
 <p align="center">
@@ -31,40 +31,40 @@
 
 ---
 
-## ARIA-X 是什么
+## What ARIA-X Is
 
-**ARIA-X 将自主推理、受控工具执行与证据管理整合为一套可复盘的安全研究工作流。** 面向本地及隔离实验环境，基于 Python 标准库构建，支持离线运行，并把每一步探索记录为可追溯的状态与证据。
+**ARIA-X brings autonomous reasoning, controlled tool execution, and evidence management together in a traceable security-research workflow.** Built for local and isolated labs, it runs on the Python standard library and persists each investigation step as structured state and inspectable evidence.
 
-每次验证任务都沿着可审计的**有向状态空间搜索路径**推进：
-- **起点**：配置白名单（`Scope`）内的本地测试资产；
-- **终点**：具备可复现证据链的调查发现（`Finding`）；
-- **路径**：由 `Planner` 提出假设与意图（`Intent`），由 `Worker` 调用工具收集事实（`Fact`），全程记录在持久化图结构中。
+Each verification engagement follows an auditable **directed state-space search**:
+- **Origin**: local test assets explicitly permitted by the configured `Scope`;
+- **Goal**: reproducible findings backed by verifiable evidence;
+- **Path**: hypotheses (`Intent`) proposed by the `Planner` and investigated by `Worker` agents via controlled tools, recorded step by step in a persistent graph.
 
-**设计核心：让每次探索都有目标、依据和可检查的结果。**
+**Core principle: every investigation step has a purpose, a boundary, and an evidence trail.**
 
-> Planner 负责生成研究意图，Worker 负责验证并收集证据；`Fact / Intent / Finding` 黑板与持久化图谱记录整个过程。`Scope`、执行预算、命令策略与审批门贯穿工具调用，最终形成可追溯的发现、执行轨迹与报告。
+> The Planner defines investigation intent while Workers perform scoped validation and evidence collection. The `Fact / Intent / Finding` blackboard and persistent graph capture the process; execution budgets, `Scope` allowlists, command policies, and approval gates govern tool use. The result is an inspectable chain of findings, traces, and reports.
 
 ---
 
-## 架构融合与演进关系
+## Architectural Lineage & Fusion
 
-### 紧凑谱系与融合图
+### Compact Lineage Diagram
 
 ```mermaid
 flowchart LR
-    subgraph UP["上游思想来源"]
-        C["Cairn (AGPL-3.0)<br/>Fact/Intent 黑板<br/>OODA 推理闭环<br/>状态空间搜索"]
-        A["ARTEX (AGPL-3.0)<br/>双图分离与轨迹<br/>Planner 意图源<br/>Todo 链与审批门"]
-        P["PentAGI (MIT)<br/>专家角色委托<br/>多模型路由抽象<br/>隔离沙箱与记忆"]
+    subgraph UP["Upstream Lineage"]
+        C["Cairn (AGPL-3.0)<br/>Fact/Intent Board<br/>OODA Reasoning<br/>State-Space Search"]
+        A["ARTEX (AGPL-3.0)<br/>Dual Graph + Traces<br/>Planner Intents<br/>Todos + Approvals"]
+        P["PentAGI (MIT)<br/>Specialist Team<br/>Provider Router<br/>Sandbox + Memory"]
     end
 
-    subgraph CORE["ARIA-X 核心层"]
-        ST["统一状态层<br/>store/ (SQLite)<br/>15 表 WAL 持久化<br/>探索图与资产图"]
-        OR["统一编排层<br/>engine/ 主循环<br/>四维预算与 Todo<br/>跨进程锁与续跑"]
-        EX["受控执行层<br/>agents · tools · llm<br/>27 工具与沙箱<br/>Scope 与 DNS 钉扎"]
+    subgraph CORE["ARIA-X Core"]
+        ST["Unified State<br/>store/ (SQLite)<br/>15-Table WAL Store<br/>Exploration + Assets"]
+        OR["Orchestration<br/>engine/ Loop<br/>4D Budgets + Todos<br/>Lock + Resume"]
+        EX["Guarded Execution<br/>agents · tools · llm<br/>27 Tools + Sandbox<br/>Scope + DNS Pin"]
     end
 
-    OUT["可复现输出<br/>report · server · web<br/>证据链报告与审计<br/>本地 SSE 控制台"]
+    OUT["Outputs<br/>report · server · web<br/>Evidence Reports<br/>Audit + SSE Console"]
 
     C --> ST
     C --> OR
@@ -76,201 +76,201 @@ flowchart LR
     EX --> OUT
 ```
 
-### 各层能力融合对照
+### Capability Fusion Matrix
 
-| 架构层次 | 思想来源 | 吸收的核心机制 | ARIA-X 补齐的工程与安全边界 | 对应源码目录 |
+| Layer | Inspiration | Adopted Mechanism | Added by ARIA-X | Package Path |
 | :--- | :--- | :--- | :--- | :--- |
-| **状态与搜索层** | **Cairn** | `Fact / Intent / Hint` 黑板；`bootstrap → reason → explore` 闭环；事实驱动而非任务列表驱动 | SQLite WAL 持久化、资产锚点关联（`anchors`）、跨运行状态持久化 | `src/aria_x/store/`<br/>`src/aria_x/engine/` |
-| **编排与图谱层** | **ARTEX** | Planner 唯一意图生成（防止 Worker 偏航）；探索图与资产图分离；跨唤醒 Todo 链；跨 Worker 轨迹检索；图驱动报告 | 统一 15 表 Schema、四维预算硬上限（时间 / Token / LLM / 工具调用） | `src/aria_x/engine/`<br/>`src/aria_x/report/` |
-| **执行与模型层** | **PentAGI** | `researcher / coder / adviser / memorist` 窄问题委托；多模型路由；沙箱终端；分层记忆 | 零依赖 Provider 实现、零依赖 CJK TF-IDF 检索、强制 Scope 与命令策略拦截 | `src/aria_x/agents/`<br/>`src/aria_x/tools/`<br/>`src/aria_x/llm/` |
-| **粘合与验证层** | **ARIA-X 原创** | 单一 `ToolRegistry` 拦截点、无 API Key 确定性离线靶场演示（`./aria-x demo`）、零 CDN 本地 SSE 控制台 | 默认仅绑定 `127.0.0.1`、自动脱敏（`redact_secrets`）、全链路 JSONL 与 SQLite 审计 | `src/aria_x/server/`<br/>`src/aria_x/web/` |
+| **State & Search** | **Cairn** | `Fact / Intent / Hint` blackboard; `bootstrap → reason → explore` OODA loop; fact-centric state | SQLite WAL persistence, asset anchors (`anchors`), durable state across runs | `src/aria_x/store/`<br/>`src/aria_x/engine/` |
+| **Orchestration & Graph** | **ARTEX** | Planner as sole intent generator; exploration vs. asset graph separation; cross-wakeup Todo chain; cross-worker trace search; graph-driven reports | Unified 15-table schema, four-dimensional budget ceilings (time / tokens / LLM calls / tool calls) | `src/aria_x/engine/`<br/>`src/aria_x/report/` |
+| **Execution & Models** | **PentAGI** | Narrow delegation (`researcher / coder / adviser / memorist`); multi-provider routing; sandboxed terminal; layered memory | Zero-dependency LLM clients, CJK-aware TF-IDF retrieval, mandatory Scope and command-policy gates | `src/aria_x/agents/`<br/>`src/aria_x/tools/`<br/>`src/aria_x/llm/` |
+| **Glue & Verification** | **ARIA-X Native** | Single `ToolRegistry` enforcement point, deterministic offline demo (`./aria-x demo`) requiring no API key, zero-CDN local SSE console | Loopback-only binding (`127.0.0.1`), automatic secret redaction, end-to-end JSONL and SQLite auditing | `src/aria_x/server/`<br/>`src/aria_x/web/` |
 
-更详细的逐项对比与取舍说明请参阅 [docs/FUSION.md](docs/FUSION.md)。
+For an item-by-item comparison with upstream systems, see [docs/FUSION.md](docs/FUSION.md).
 
 ---
 
-## 以证据驱动的状态空间推理
+## Evidence-Driven State-Space Reasoning
 
-ARIA-X 将上下文感知的智能体推理与结构化状态管理、工具执行策略和审计机制结合起来：从目标出发提出意图，通过受控工具验证假设，沉淀事实，再由持久化证据生成报告。**自主性推动探索，结构化证据支撑结论。**
+ARIA-X combines context-aware agent reasoning with explicit state, execution policies, and auditability. It forms investigation intents, tests hypotheses through controlled tools, captures facts, and builds reports from persisted evidence. **Autonomy drives exploration; structured evidence explains the results.**
 
-| 机制设计 | 解决的核心问题 |
+| Design Mechanism | Problem Solved |
 | :--- | :--- |
-| **Planner 统一生成意图** | 将研究方向组织为可追踪的 Intent，使 Worker 围绕明确目标开展验证 |
-| **双图分离（探索图 / 资产图）** | 将“模型的推理假设”与“目标环境中已确认的客观资产”严格隔离 |
-| **Fact / Intent / Hint 黑板** | 每一步决策均有明确的输入依据、证据哈希与来源追溯 |
-| **跨唤醒 Todo 链与过程轨迹** | 保存任务依赖与探索历史，为多步验证和后续 Worker 提供可检索的上下文 |
-| **四维预算护栏** | 时间、LLM 调用次数、Token 消耗、工具调用次数任一达到阈值即平稳收尾并生成报告 |
-| **Scope + 命令策略 + 审批门** | 目标越界、高风险动作与破坏性指令均在 `ToolRegistry` 入口处被统一拦截 |
-| **图驱动报告** | 从持久化节点与证据渲染报告，使发现能够回溯至具体的验证路径 |
+| **Planner as the intent authority** | Centralizes investigation direction in traceable Intents and gives Workers clear validation objectives |
+| **Dual graphs (exploration vs. assets)** | Separates unverified hypotheses ("what we think") from confirmed environment state ("what exists") |
+| **Fact / Intent / Hint blackboard** | Every decision records its inputs, evidence hashes, and provenance |
+| **Cross-wakeup Todo chain & traces** | Preserves task dependencies and investigation history as searchable context for subsequent Workers |
+| **Four-dimensional budgets** | Reaching any ceiling (wall time, LLM calls, tokens, or tool calls) triggers a clean wrap-up and report |
+| **Scope + command policy + approval** | Out-of-scope targets, risky tools, and destructive commands are intercepted at `ToolRegistry.execute` |
+| **Graph-driven reports** | Builds reports from persisted state and evidence, linking findings to their verification paths |
 
 ---
 
-## 核心特性
+## Core Features
 
-- **离线端到端可验证**：运行 `./aria-x demo` 无需 API Key、无需联网，即可在本机 `127.0.0.1` 随机端口启动内置教学靶场，完整跑通 `Planner → Worker → Finding → Report` 全流程。
-- **Python 标准库零依赖**：运行时仅需 CPython 3.11+ 标准库，无需 `pip install` 任何第三方包。
-- **多模型无缝接入**：原生支持 OpenAI 兼容接口（DeepSeek、vLLM、Ollama、OpenRouter 等）与 Anthropic，同时提供 `mock` 与 `scenario` 两种确定性测试替身。
-- **严格的 Scope 白名单**：所有目标网络工具在发出首个数据包前均调用 `Scope.require_url/require_host`；支持精确主机、通配域名、CIDR、`host:port`、URL 前缀、`deny` 规则与单主机限速；HTTP 重定向逐跳重新校验；当 `safety.allow_public_targets = false` 时，无法解析的主机名也会按失败关闭（fail-closed）拒绝。
-- **多后端隔离终端**：支持 `local`、`docker` 与 `mock` 三种沙箱后端；示例配置与 `aria-x init` 生成的模板预设 `sandbox.network = "none"`（`SandboxConfig` 程序内置默认值为 `"bridge"`）。
-- **分级审批门**：当 `safety.approval = "ask"` 时，`high` / `critical` 风险工具会生成审批记录并阻塞等待人工确认；`deny` 直接拒绝；`auto` 放行但依然受 Scope 与命令策略约束。
-- **结构化证据链报告**：每次运行在 `runs/<run_id>/` 下生成 `report.md`、`report.html` 与 `findings.json`，并与 SQLite 状态图、JSONL 事件流及审计表一一对应。
-- **零 CDN 本地控制台**：内置基于原生 HTML/CSS/JS 与 SSE 实时事件流的本地 Web 控制台（默认仅绑定 `127.0.0.1:8787`，支持 Bearer Token 认证）。
-- **交互式 PTY 会话（v0.1.1）**：新增 `session_open`、`session_send`、`session_read`、`session_close`、`session_list`，用于在本机隔离实验环境中驱动需要持续终端交互的程序；创建会话和发送输入均为高风险操作，必须经过命令策略、Scope 校验与审批门。每次运行最多 4 个并发会话，空闲会话会被清理；详情见 [更新日志](CHANGELOG.md)。
-- **三语 Web 控制台与三语报告模板（v0.2.0）**：Web 控制台支持在 Settings 中切换 `English` / `简体中文` / `日本語`（默认英文，仅更新界面展示标签并保存在浏览器 `localStorage`，不改写报告正文）；报告渲染器 `aria_x.report.render` 支持显式 `en` / `zh-CN` / `ja` 固定文案模板，同时现有 CLI 与 Demo 入口默认仍生成英文固定文案报告。
+- **Offline End-to-End Verification**: `./aria-x demo` requires no API key and no internet access. It launches a local teaching target on an ephemeral `127.0.0.1` port and runs the full `Planner → Worker → Finding → Report` loop deterministically.
+- **Python Standard Library Only**: Runs on CPython 3.11+ with zero third-party runtime dependencies (`pip install` is completely optional).
+- **Multi-Provider LLM Routing**: Supports OpenAI-compatible APIs (DeepSeek, vLLM, Ollama, OpenRouter), Anthropic, and deterministic `mock` and `scenario` test providers.
+- **Enforced Target Scope**: Network tools call `Scope.require_url/require_host` before sending a single packet. Supports exact hosts, wildcard domains, CIDRs, `host:port`, URL prefixes, `deny` rules, and per-host rate limits. HTTP redirects are re-authorized hop by hop; unresolved hostnames fail closed when `safety.allow_public_targets = false`.
+- **Isolated Terminal Backends**: Supports `local`, `docker`, and `mock` sandboxes; the example config and `aria-x init` template set `sandbox.network = "none"` (while the in-code `SandboxConfig` default is `"bridge"`).
+- **Configurable Approval Gate**: With `safety.approval = "ask"`, `high` and `critical` tools record an approval request and block for human confirmation; `deny` rejects them outright; `auto` executes them within Scope and command-policy boundaries.
+- **Evidence-Backed Reports**: Each run writes `report.md`, `report.html`, and `findings.json` under `runs/<run_id>/`, backed by SQLite state, a JSONL event stream, and an audit table.
+- **Zero-CDN Local Web Console**: Built-in SPA served on `127.0.0.1:8787` by default, streaming live updates over Server-Sent Events (SSE) with optional Bearer token authentication.
+- **Interactive PTY Sessions (v0.1.1)**: `session_open`, `session_send`, `session_read`, `session_close`, and `session_list` support programs requiring persistent terminal interaction inside isolated local labs. Starting a session and sending input are high-risk actions subject to command policy, Scope checks, and approval gates. Sessions are capped at four concurrent instances per run, with idle cleanup; see the [changelog](CHANGELOG.md).
+- **Web Console & Report Templates (v0.2.0)**: The Web Console supports English and Japanese in Settings (defaulting to English; display-only preference stored in `localStorage` without altering report bodies). The `zh-CN` choice stays in the language list and uses this same English wording. `aria_x.report.render` supports explicit `en`, `zh-CN`, and `ja` fixed-copy templates; the `zh-CN` template uses the English wording. Existing CLI and Demo entry points still default to English report copy.
 
 ---
 
-## 架构与主循环
+## Architecture & Main Loop
 
 <p align="center">
   <img src="assets/architecture.svg" alt="ARIA-X architecture" width="100%">
 </p>
 
-单次验证运行的主循环（详见 [src/aria_x/engine/orchestrator.py](src/aria_x/engine/orchestrator.py)）：
+Main execution loop ([src/aria_x/engine/orchestrator.py](src/aria_x/engine/orchestrator.py)):
 
 ```mermaid
 flowchart LR
-    BOOT["bootstrap<br/>初始基线探测"]
-    RSN["reason<br/>Planner 生成意图"]
-    DSP["dispatch<br/>并发派发任务"]
-    WRK["worker<br/>受控工具验证"]
-    PST["persist<br/>状态与证据落库"]
-    RPT["report<br/>生成证据链报告"]
+    BOOT["bootstrap<br/>Baseline probe"]
+    RSN["reason<br/>Emit Intents"]
+    DSP["dispatch<br/>Parallel tasks"]
+    WRK["worker<br/>Guarded tools"]
+    PST["persist<br/>SQLite + audit"]
+    RPT["report<br/>MD / HTML / JSON"]
 
     BOOT --> RSN
     RSN --> DSP
     DSP --> WRK
     WRK --> PST
-    PST -->|"下一轮"| RSN
-    PST -->|"完成 / 预算收尾"| RPT
+    PST -->|"next round"| RSN
+    PST -->|"done / limit"| RPT
 ```
 
-预算、超时与空转检测决定循环继续还是平稳收尾；`persist` 阶段同时写出 JSONL 事件归档并落库审计记录。
+Budget, timeout and idle checks decide whether the loop continues; `persist` also writes the JSONL event archive and the audit trail.
 
-**关键架构边界**：
-1. **模型调用唯一入口**：所有模型请求必须经过 `ModelRouter`，支持按角色（`planner / worker / specialist / reporter`）独立配置模型（`[llm.role_models]`）。
-2. **工具执行唯一入口**：所有工具调用必须经过 `ToolRegistry.execute`，统一完成参数 Schema 校验、Scope 鉴权、审批门拦截与审计记录。
-3. **目标流量与外部检索隔离**：目标探测工具必须通过 `Scope` 校验；`web_search` 属于公开资料检索，不接触测试目标。
-4. **单连接线程安全写入**：状态持久化使用启用了 WAL 模式的单一线程安全 SQLite 连接；HTTP Server 的 SSE 推送通过内存事件队列订阅，不持有数据库锁。
+**Architectural invariants**:
+1. **Single LLM entry point**: All model calls route through `ModelRouter`, with per-role model overrides (`[llm.role_models]`).
+2. **Single tool entry point**: All tools execute via `ToolRegistry.execute`, which enforces schema validation, Scope authorization, approval gates, and cancellation checks.
+3. **Target vs. research traffic separation**: Target network I/O is gated by `Scope`; `web_search` queries public documentation without touching target hosts.
+4. **Single-writer SQLite concurrency**: State persists through one thread-safe SQLite connection in WAL mode; SSE streams subscribe via in-memory queues and never hold database locks.
 
-完整的模块划分、数据模型与 HTTP API 说明见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for full module, schema, and HTTP API specifications.
 
 ---
 
-## 快速开始
+## Quick Start
 
-### 0. 环境要求
+### 0. Prerequisites
 
-仅需 **CPython 3.11+**（推荐 3.12），无需安装任何第三方依赖。
+Only **CPython 3.11+** (3.12 recommended) is required. No `pip install` step is needed.
 
 ```bash
 git clone https://github.com/01NGVI-QINGYI/ARIA-X.git
 cd ARIA-X
 
-# 方式一：使用仓库自带的免安装启动器（自动定位 Python 并设置 PYTHONPATH）
+# Option 1: use the bundled launcher (locates Python and sets PYTHONPATH automatically)
 ./aria-x --version
 
-# 方式二：手动指定 PYTHONPATH
+# Option 2: set PYTHONPATH manually
 export PYTHONPATH="$PWD/src"
 python3.12 -m aria_x --version
 ```
 
-### 1. 运行离线端到端演示（推荐第一步）
+### 1. Run the Offline End-to-End Demo (Recommended First Step)
 
 ```bash
 ./aria-x demo
 ```
 
-该命令将在完全离线的本机环境中执行以下步骤：
-1. 在 `127.0.0.1` 的随机空闲端口启动内置教学靶场 `examples/demo_target.py`（包含路径边界缺陷、安全响应头缺失与 `/debug` 信息泄露等教学示例）；
-2. 使用确定性策略 `DemoPolicy` 驱动 `Planner → Worker → Finding → Report` 完整闭环；
-3. 输出发现汇总与报告路径（`runs/demo-<时间戳>/<run_id>/report.md`）。
+This command runs entirely offline:
+1. Starts `examples/demo_target.py` on an ephemeral `127.0.0.1` port—a local teaching service with intentional path-boundary issues, missing security headers, and a `/debug` disclosure endpoint;
+2. Executes the full `Planner → Worker → Finding → Report` pipeline using the deterministic `DemoPolicy`;
+3. Prints the finding summary and generated report path (`runs/demo-<timestamp>/<run_id>/report.md`).
 
-常用参数：
+Useful flags:
 ```bash
-./aria-x demo --keep          # 演示结束后保留本机靶场进程并打印访问地址
-./aria-x demo --serve         # 演示结束后自动启动本地 Web 控制台（127.0.0.1:8787）
-./aria-x demo --quiet         # 仅输出最终状态与报告路径
+./aria-x demo --keep          # keep the local demo target running and print its URL
+./aria-x demo --serve         # launch the local web console (127.0.0.1:8787) after the run
+./aria-x demo --quiet         # print only the final status and report path
 ```
 
-### 2. 初始化配置文件与接入模型
+### 2. Initialize Configuration & Connect a Model
 
 ```bash
-./aria-x init                 # 生成默认配置文件 configs/aria-x.toml
+./aria-x init                 # creates configs/aria-x.toml
 ```
 
-编辑 `configs/aria-x.toml`，确认本地授权范围与模型配置：
+Edit `configs/aria-x.toml` to configure your local lab scope and model endpoint:
 
 ```toml
 [scope]
-authorized = true                   # 仅在确认属于本机隔离实验环境时设为 true
-targets = ["127.0.0.1"]             # 严格限定为本机回环或隔离实验网段
+authorized = true                   # set true only for your isolated local test environment
+targets = ["127.0.0.1"]             # restrict to loopback or isolated lab subnets
 
 [llm]
-provider = "openai"                 # 支持 openai / anthropic / ollama / scenario / mock
+provider = "openai"                 # openai | anthropic | ollama | scenario | mock
 base_url = "https://api.deepseek.com/v1"
 model = "deepseek-chat"
 ```
 
-通过环境变量配置 API Key 并执行环境自检：
+Supply your API key via the environment and run the self-check:
 
 ```bash
 export ARIA_X_API_KEY="your-api-key"
-./aria-x doctor --llm               # 校验配置、目录、沙箱及模型连通性
+./aria-x doctor --llm               # verifies config, directories, sandbox, and live model call
 ```
 
-### 3. 启动本地验证任务与查看结果
+### 3. Run a Local Verification Task & Inspect Results
 
 ```bash
 ./aria-x -c configs/aria-x.toml run \
   --name "Local lab verification" \
-  --goal "验证本机隔离靶场服务的配置缺陷与路径边界，输出可复现的证据与修复建议。"
+  --goal "Verify configuration boundaries and path handling on the local test service, with reproducible evidence and remediation notes."
 ```
 
-任务完成后，可通过命令行查看持久化结果：
+Inspect persisted results after completion:
 
 ```bash
-./aria-x projects                               # 查看项目列表
-./aria-x graph                                  # 查看最新项目的黑板与状态图摘要
-./aria-x report                                 # 打印最新报告路径（加 --open 可直接打开）
-./aria-x report "$RUN_ID"                       # 先填入实际 RUN_ID，再按运行 ID 精确查询报告路径
-./aria-x report --project-id "$PROJECT_ID"      # 先填入实际 PROJECT_ID，再按项目 ID 查询最新报告路径
-./aria-x export -o out.json                     # 导出完整项目图谱与证据 JSON
+./aria-x projects                               # list projects
+./aria-x graph                                  # inspect the blackboard summary of the latest project
+./aria-x report                                 # print the latest report path (--open to view)
+./aria-x report "$RUN_ID"                       # set RUN_ID first to look up a report by exact run ID
+./aria-x report --project-id "$PROJECT_ID"      # set PROJECT_ID first to look up the latest report for a project
+./aria-x export -o out.json                     # export full project graph and evidence as JSON
 ```
 
-> `aria-x report` 全程只读查询 SQLite（不初始化空库）并校验目录与元数据归属；嵌套目录、旧式平铺与时间戳归档的兼容规则见 [CHANGELOG.md](CHANGELOG.md)。
+> `aria-x report` queries SQLite strictly read-only (never initializing empty DB files) and validates directory/metadata attribution; see [CHANGELOG.md](CHANGELOG.md) for legacy archive layout compatibility.
 
-### 4. 启动本地 Web 控制台
+### 4. Launch the Local Web Console
 
 ```bash
 export ARIA_X_AUTH_TOKEN="$(python3 -c 'import secrets; print(secrets.token_hex(16))')"
 ./aria-x serve --open
 ```
 
-默认监听 `http://127.0.0.1:8787`，提供项目总览、状态探索图、发现详情、资产列表、执行轨迹、人工审批与实时 SSE 事件流视图。
+Binds to `http://127.0.0.1:8787` by default, providing interactive views for projects, exploration graphs, findings, assets, execution traces, pending approvals, and live SSE events.
 
 ---
 
-## 命令行参考
+## CLI Reference
 
-| 命令 | 说明 |
+| Command | Description |
 | :--- | :--- |
-| `aria-x init` | 生成初始配置文件 `configs/aria-x.toml` |
-| `aria-x demo` | 运行离线端到端本机演示（支持 `--keep`、`--serve`、`--quiet`） |
-| `aria-x run --goal ...` | 按指定配置与目标无头运行一次验证任务 |
-| `aria-x serve` | 启动本地 Web 控制台（默认绑定 `127.0.0.1:8787`） |
-| `aria-x doctor [--llm]` | 检查 Python 版本、配置、目录、工具、引擎、沙箱及模型连通性 |
-| `aria-x tools [--json]` | 列出全部 27 个内置工具的名称、风险等级与 Scope 要求 |
-| `aria-x projects / graph / report / export` | 查询项目列表、状态图摘要、报告路径（支持 `report <run_id>` 与 `report --project-id <project_id>`，旧归档兼容见 [CHANGELOG.md](CHANGELOG.md)）或导出完整 JSON |
+| `aria-x init` | Write a starter `configs/aria-x.toml` configuration file |
+| `aria-x demo` | Run the offline end-to-end localhost demo (`--keep`, `--serve`, `--quiet`) |
+| `aria-x run --goal ...` | Run a headless verification session with the configured scope and goal |
+| `aria-x serve` | Start the local web console (`127.0.0.1:8787` by default) |
+| `aria-x doctor [--llm]` | Verify Python, config, directories, tools, engine, server, sandbox, and LLM connectivity |
+| `aria-x tools [--json]` | List all 27 built-in tools with their risk levels and Scope requirements |
+| `aria-x projects / graph / report / export` | Inspect persisted projects, graph summaries, reports (`report <run_id>`, `report --project-id <project_id>`; see [CHANGELOG.md](CHANGELOG.md) for legacy archive compatibility), or full JSON exports |
 
-- **全局参数**：`-c/--config <path>`（可置于子命令前或后）、`--version`。
-- **退出码**：`0` 正常完成、`1` 运行未完成、`2` 配置或参数错误、`130` 人工中断。
+- **Global flags**: `-c/--config <path>` (before or after the subcommand), `--version`.
+- **Exit codes**: `0` success, `1` incomplete run, `2` configuration/argument error, `130` interrupted.
 
 ---
 
-## 配置示例
+## Configuration Example
 
-完整配置说明见 [configs/aria-x.example.toml](configs/aria-x.example.toml)，核心配置项如下：
+See [configs/aria-x.example.toml](configs/aria-x.example.toml) for all options. Core excerpt:
 
 ```toml
 name = "Local lab engagement"
@@ -307,7 +307,7 @@ max_total_intents = 40
 [sandbox]
 backend = "local"              # local | docker | mock
 image = "python:3.12-slim"
-network = "none"               # 示例与 init 模板禁用容器网络（SandboxConfig 内置默认值为 "bridge"）；仅在隔离实验环境按需调整
+network = "none"               # disabled in example & init templates (SandboxConfig code default is "bridge")
 timeout = 120
 
 [safety]
@@ -318,37 +318,37 @@ redact_secrets = true
 [server]
 host = "127.0.0.1"
 port = 8787
-auth_token = ""                # 推荐通过 ARIA_X_AUTH_TOKEN 环境变量注入
+auth_token = ""                # or set via ARIA_X_AUTH_TOKEN
 
 [engine]
-language = "zh"
+language = "en"
 bootstrap = true
 max_idle_rounds = 2
 ```
 
-支持通过环境变量覆盖对应配置：`ARIA_X_PROVIDER`、`ARIA_X_BASE_URL`、`ARIA_X_API_KEY`、`ARIA_X_MODEL`、`ARIA_X_DATA_DIR`、`ARIA_X_AUTH_TOKEN`、`ARIA_X_SANDBOX`、`ARIA_X_APPROVAL`。
+Supported environment variable overrides: `ARIA_X_PROVIDER`, `ARIA_X_BASE_URL`, `ARIA_X_API_KEY`, `ARIA_X_MODEL`, `ARIA_X_DATA_DIR`, `ARIA_X_AUTH_TOKEN`, `ARIA_X_SANDBOX`, `ARIA_X_APPROVAL`.
 
 ---
 
-## 内置工具目录（27 个）
+## Built-in Tool Catalog (27 Tools)
 
-| 类别 | 工具名称 | 风险与安全约束 |
+| Category | Tools | Risk & Safeguards |
 | :--- | :--- | :--- |
-| **终端与文件** | `terminal_exec` (high)、`file_read` (medium)、`file_write` (high)、`file_list` (low) | 沙箱隔离 + 工作目录路径限制（Path Jail）+ 命令策略过滤 |
-| **交互会话（PTY）** | `session_open` (high)、`session_send` (high)、`session_read`、`session_close`、`session_list` | 驱动 msfconsole / ssh / 数据库 REPL / 反弹 shell；同一套 scope 与命令策略 |
-| **目标网络探测** | `http_request`、`dns_lookup`、`port_scan` (high)、`tls_probe`、`web_probe` | 每次调用前强制执行 `Scope` 白名单与限速校验 |
-| **外部资料检索** | `web_search` | 仅查询公开资料，不接触测试目标 |
-| **黑板与图谱** | `add_fact`、`add_finding`、`add_asset`、`anchor_node`、`graph_query` | 状态图节点、边与证据写入 |
-| **计划与记忆** | `todo_update`、`search_traces`、`memory_store`、`memory_search` | 跨唤醒计划维护与零依赖 TF-IDF 轨迹检索 |
-| **专家协作与诊断** | `delegate_specialist`、`prove_goal`、`scope_check` | 窄问题子代理委托、目标达成判定与 Scope 自检 |
+| **Terminal & Files** | `terminal_exec` (high), `file_read` (medium), `file_write` (high), `file_list` (low) | Sandbox isolation + workdir path jail + command-policy filter |
+| **Interactive Sessions (PTY)** | `session_open` (high), `session_send` (high), `session_read`, `session_close`, `session_list` | Drives msfconsole / ssh / database REPLs / reverse shells under the same scope and command policy |
+| **Scoped Network** | `http_request`, `dns_lookup`, `port_scan` (high), `tls_probe`, `web_probe` | Mandatory per-call `Scope` allowlist and rate-limit enforcement |
+| **External Research** | `web_search` | Queries public documentation only; never contacts target hosts |
+| **Blackboard & Graph** | `add_fact`, `add_finding`, `add_asset`, `anchor_node`, `graph_query` | Writes structured nodes, edges, asset anchors, and evidence |
+| **Planning & Memory** | `todo_update`, `search_traces`, `memory_store`, `memory_search` | Cross-wakeup plan tracking and zero-dependency TF-IDF retrieval |
+| **Collaboration** | `delegate_specialist`, `prove_goal`, `scope_check` | Specialist sub-agent delegation, completion verification, and Scope diagnostics |
 
-各工具的参数 Schema、风险等级与示例详见 [docs/TOOLS.md](docs/TOOLS.md)。
+Full parameter schemas, risk ratings, and examples are documented in [docs/TOOLS.md](docs/TOOLS.md).
 
 ---
 
-## 数据模型：一张统一状态图
+## Data Model: One Unified State Graph
 
-ARIA-X 使用 15 张 SQLite 表将三套上游语义收敛为同一张有向状态图：
+A 15-table SQLite schema unifies all three upstream lineages into a single directed graph:
 
 ```text
 projects ── runs ── tasks
@@ -357,63 +357,63 @@ projects ── runs ── tasks
    │     └── edges (spawns / yields / derived_from / proves / supports / depends_on)
    │           └── anchors ── assets (root_domain / subdomain / host / ip / service / endpoint / app / credential / artifact)
    │
-   ├── todos        （跨唤醒周期的计划依赖链）
-   ├── traces       （Worker 执行过程轨迹，支持跨 Worker 检索）
-   ├── evidence     （Finding 关联的原始证据、SHA-256 哈希与摘要）
-   ├── approvals    （高风险工具调用的人工审批记录）
-   └── audit        （Scope 鉴权、审批决定与策略拦截审计日志）
+   ├── todos        (cross-wakeup plan dependency chain)
+   ├── traces       (worker execution traces, searchable across workers)
+   ├── evidence     (raw finding evidence, SHA-256 hashes, excerpts)
+   ├── approvals    (human approval records for high-risk tools)
+   └── audit        (scope, approval, and policy enforcement log)
 ```
 
-在 ARIA-X 中，一条 `Finding` 同时承载三层语义：Cairn 中的“已核实事实”、ARTEX 中的“验证结论节点”，并通过 `anchor` 锚定到具体资产。所有报告、覆盖度统计与推理路径均直接从该图生成，而非从对话文本拼接。
+In ARIA-X, a `Finding` simultaneously represents a verified fact (Cairn), a conclusion node in the exploration graph (ARTEX), and an evidence-backed artifact anchored to a concrete asset (PentAGI). Reports, coverage summaries, and verification paths are rendered directly from this graph rather than stitched together from conversation logs.
 
 ---
 
-## 执行控制与适用范围
+## Execution Controls & Operating Scope
 
-ARIA-X 将目标范围控制、风险操作审批和运行审计融入工具执行路径。具体使用范围与合规要求请参阅文末[《许可证与使用边界声明》](#许可证与使用边界声明)。
+ARIA-X integrates target scoping, risk-based approvals, and execution auditing into its runtime. For permitted uses and compliance requirements, see [License & Usage Boundaries](#license--usage-boundaries).
 
-### 1. 内置执行控制
-- **强制启动授权门**：配置文件必须同时满足 `scope.authorized = true` 且 `scope.targets` 非空，否则直接抛出 `ConfigError` 终止启动。
-- **目标级 Scope 校验**：支持精确主机、通配域名、CIDR、`host:port` 与 URL 前缀；`deny` 规则优先于 `allow`；HTTP 重定向逐跳重新鉴权；在 `safety.allow_public_targets = false` 时，无法解析的主机名也会拒绝放行。
-- **高风险工具审批门**：支持 `auto`（受 Scope 与命令策略约束下放行）、`ask`（创建审批事件并阻塞等待人工确认，最长 300 秒）与 `deny`（直接拒绝并写入审计日志）。
+### 1. Built-In Execution Controls
+- **Mandatory Authorization Gate**: Both `scope.authorized = true` and a non-empty `scope.targets` list are required before a run can be created; omitting either raises `ConfigError`.
+- **Target-Level Scope Enforcement**: Supports exact hosts, wildcard domains, CIDRs, `host:port`, and URL prefixes. `deny` rules take precedence over `allow`; HTTP redirects are re-verified hop by hop; unresolved hostnames fail closed when `safety.allow_public_targets = false`.
+- **High-Risk Tool Approval Gate**: Supports `auto` (executes within Scope, path jail, and command policy), `ask` (creates an approval record and blocks for human confirmation up to 300 s), and `deny` (refuses immediately and logs an audit entry).
 
-### 2. 当前版本的设计定位
-- **模型推理与证据相结合**：模型负责提出探索方向，工具输出与记录的证据支撑发现；复杂结论仍需研究者核验。
-- **分层执行控制**：`CommandPolicy` 提供启发式命令过滤；进程级隔离可使用 Docker 后端（示例配置与 `aria-x init` 模板预设 `network = "none"`，程序内置默认值为 `bridge`）。命令过滤本身不等于操作系统沙箱。
-- **专注本地研究**：SQLite WAL 适用于单机实验和小规模协作；分布式集群调度不属于 v0.3.0 的实现范围。
-- **面向验证的工具集**：内置工具聚焦受控验证、状态管理与报告，不打包独立漏洞利用载荷或第三方扫描器。
-- **明确的演进方向**：专用 Prompt Injection 分类器尚未实现；中断或预算耗尽的运行可用 `aria-x run --resume` 继续，相关计划见 [开发路线图](docs/ROADMAP.md)。
+### 2. Current Design Scope
+- **Model reasoning backed by evidence**: LLMs guide exploration, while inspectable tool outputs and recorded evidence support findings. Researchers should verify complex conclusions.
+- **Layered execution controls**: `CommandPolicy` applies heuristic command filtering. For process isolation, use the Docker backend (example config and `aria-x init` template set `network = "none"`; the in-code `SandboxConfig` default is `"bridge"`); command filtering alone is not an OS-level sandbox.
+- **Focused on local research**: SQLite WAL persistence supports local experiments and small-team workflows. Distributed scheduling is outside the v0.3.0 feature set.
+- **Purpose-built orchestration**: The built-in toolkit focuses on scoped validation, state management, and reporting rather than bundling exploit payloads or third-party scanners.
+- **Clear development roadmap**: Dedicated prompt-injection classification is not implemented in v0.3.0; interrupted engagements can be continued with `aria-x run --resume`; see [Roadmap](docs/ROADMAP.md).
 
-完整的威胁模型与安全披露流程见 [docs/SECURITY.md](docs/SECURITY.md)，演进路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)。
-
----
-
-## 控制台预览与报告产物
-
-本地 Web 控制台以原生 HTML/CSS/JS 构建，默认监听 `127.0.0.1`，通过 SSE 展示实时运行状态。以下截图来自离线端到端演示（`./aria-x demo`）：
-
-<p align="center">
-  <img src="assets/console-overview.png" alt="ARIA-X 控制台总览：运行状态、预算、任务与审批队列" width="100%">
-</p>
-
-<p align="center">
-  <img src="assets/console-findings.png" alt="ARIA-X 发现列表：路径边界问题与证据锚点" width="100%">
-</p>
-
-<p align="center">
-  <img src="assets/console-graph.png" alt="ARIA-X 探索图：goal → intent → fact → finding 分层" width="100%">
-</p>
-
-每次运行结束后，会在 `runs/<run_id>/` 下生成三份结构化产物：
-- `report.md`：人类可读的 Markdown 报告（摘要、测试范围、发现详情、推理与验证路径、覆盖度统计）；
-- `report.html`：自包含的深色主题 HTML 报告（无外部 CDN 依赖）；
-- `findings.json`：结构化发现与证据导出文件。
+See [docs/SECURITY.md](docs/SECURITY.md) for the full threat model and vulnerability disclosure policy, and [docs/ROADMAP.md](docs/ROADMAP.md) for planned work.
 
 ---
 
-## 容器化运行与测试自检
+## Console Previews & Report Artifacts
 
-### Docker 运行
+The local web console uses native HTML/CSS/JS, binds to `127.0.0.1` by default, and streams live run activity through SSE. The screenshots below are from the offline demo (`./aria-x demo`):
+
+<p align="center">
+  <img src="assets/console-overview.png" alt="ARIA-X console overview: run state, budget, tasks, and approval queue" width="100%">
+</p>
+
+<p align="center">
+  <img src="assets/console-findings.png" alt="ARIA-X findings view: path boundary finding with evidence anchors" width="100%">
+</p>
+
+<p align="center">
+  <img src="assets/console-graph.png" alt="ARIA-X exploration graph: goal → intent → fact → finding layers" width="100%">
+</p>
+
+Every run writes three self-contained artifacts to `runs/<run_id>/`:
+- `report.md`: human-readable Markdown report (executive summary, scope, findings, reasoning and verification path, and coverage metrics);
+- `report.html`: standalone dark-theme HTML report (zero external CDN requests);
+- `findings.json`: structured findings and evidence export.
+
+---
+
+## Container Usage & Verification Suite
+
+### Docker
 
 ```bash
 docker build -f docker/Dockerfile -t aria-x:0.3.0 .
@@ -425,113 +425,113 @@ docker run --rm -p 127.0.0.1:8787:8787 \
   aria-x:0.3.0
 ```
 
-容器镜像仅包含 ARIA-X 标准库核心代码，不打包任何第三方扫描器。使用 `docker/docker-compose.yml` 启动时，必须显式设置非空环境变量 `ARIA_X_AUTH_TOKEN`（未设置或为空将拒绝启动）。详细部署说明见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
+The container image packages only ARIA-X's Python standard-library core without third-party scanners. Deploying with `docker/docker-compose.yml` requires an explicit non-empty `ARIA_X_AUTH_TOKEN` (Compose fails fast if unset or empty). See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for details.
 
-### 测试与离线验证门
+### Verification & Self-Check Scripts
 
 ```bash
-bash scripts/verify.sh          # 运行全部 354 个单元测试 + 离线端到端 demo（无需网络与 API Key）
-bash scripts/dev.sh test        # 仅运行单元测试
-bash scripts/dev.sh doctor      # 运行环境自检
+bash scripts/verify.sh          # runs all 354 unit tests + offline end-to-end demo (no network or API key)
+bash scripts/dev.sh test        # runs the unit test suite only
+bash scripts/dev.sh doctor      # runs environment diagnostics
 ```
 
 ---
 
-## 项目结构与文档导航
+## Project Layout & Documentation Index
 
 ```text
 ARIA-X/
-├── aria-x                     # 免安装启动器（自动定位 Python 并设置 PYTHONPATH）
-├── pyproject.toml             # 包元数据配置（无第三方运行时依赖）
+├── aria-x                     # no-install launcher (locates Python and sets PYTHONPATH)
+├── pyproject.toml             # package metadata (zero runtime dependencies)
 ├── src/aria_x/
-│   ├── cli.py                 # 命令行入口
-│   ├── config.py              # TOML/JSON 配置解析、环境变量与校验
-│   ├── models.py              # 核心数据模型（节点 / 资产 / Todo / 轨迹 / 证据）
-│   ├── events.py              # 事件总线、JSONL 持久化与 SSE 重放
-│   ├── store/                 # SQLite 15 表 Schema 与数据访问层
-│   ├── engine/                # 预算护栏、调度器、上下文构建与编排主循环
-│   ├── agents/                # Agent 循环、角色边界、提示词契约与 Worker 实现
-│   ├── tools/                 # 27 个内置工具、Scope 白名单、沙箱与审批门
-│   ├── llm/                   # 多模型 Provider、路由器、Mock/Scenario 替身与 JSON 修复
-│   ├── memory/                # 零依赖 TF-IDF 检索（支持中英日分词）
-│   ├── report/                # Markdown / HTML / findings.json 报告渲染器
-│   ├── server/                # ThreadingHTTPServer REST API 与 SSE 服务端
-│   └── web/                   # 零 CDN 本地控制台前端（HTML/CSS/JS）
-├── tests/                     # 354 个单元与集成测试
-├── examples/                  # 本机离线教学靶场、演示配置与确定性剧本
-├── configs/                   # 配置文件模板
-└── docs/                      # 架构、融合映射、工具手册、安全模型、部署与路线图
+│   ├── cli.py                 # CLI entry point
+│   ├── config.py              # TOML/JSON parser, environment overrides, validation
+│   ├── models.py              # dataclasses for nodes, assets, todos, traces, and evidence
+│   ├── events.py              # event bus, JSONL persistence, and SSE replay
+│   ├── store/                 # 15-table SQLite schema and DAO
+│   ├── engine/                # budgets, scheduler, context builder, orchestrator loop
+│   ├── agents/                # agent loop, role boundaries, prompt contracts, workers
+│   ├── tools/                 # 27 built-in tools, Scope gate, sandbox, approval gate
+│   ├── llm/                   # providers, router, mock/scenario doubles, JSON repair
+│   ├── memory/                # zero-dependency TF-IDF retrieval (CJK-aware)
+│   ├── report/                # Markdown / HTML / findings.json renderers
+│   ├── server/                # ThreadingHTTPServer REST API and SSE stream
+│   └── web/                   # zero-CDN local web console (HTML/CSS/JS)
+├── tests/                     # 354 unit and integration tests
+├── examples/                  # local offline demo target, config, and scenario script
+├── configs/                   # example configuration files
+└── docs/                      # architecture, fusion mapping, tools, security, deployment, roadmap
 ```
 
-| 文档路径 | 内容说明 |
+| Document | Contents |
 | :--- | :--- |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 模块职责、数据流、SQLite 表结构、HTTP API 与事件列表 |
-| [docs/FUSION.md](docs/FUSION.md) | 与 ARTEX / Cairn / PentAGI 的逐项架构映射与工程取舍 |
-| [docs/TOOLS.md](docs/TOOLS.md) | 27 个内置工具的参数定义、风险分级与 Scope 校验行为 |
-| [docs/SECURITY.md](docs/SECURITY.md) | 技术防护机制、威胁模型、敏感信息脱敏与安全漏洞披露流程 |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 本地与容器化部署、模型接入、沙箱配置与常见排障 |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | 当前实现、开发计划与版本范围 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Module responsibilities, data flow, SQLite schema, HTTP API, and event types |
+| [docs/FUSION.md](docs/FUSION.md) | Item-by-item architectural mapping and trade-offs vs. ARTEX, Cairn, and PentAGI |
+| [docs/TOOLS.md](docs/TOOLS.md) | Parameter schemas, risk levels, and Scope behavior for all 27 built-in tools |
+| [docs/SECURITY.md](docs/SECURITY.md) | Technical safeguards, threat model, secret redaction, and disclosure policy |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Local and container deployment, model configuration, sandboxing, and troubleshooting |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Current capabilities, development priorities, and version scope |
 
 ---
 
-## 致谢与思想来源
+## Acknowledgements & Lineage
 
-ARIA-X 将 **ARTEX、Cairn 与 PentAGI** 的架构思想整合到独立的 Python 运行时，并构建统一的持久化状态层、执行控制与审计体系。感谢这些开源项目及原作者对相关技术生态的贡献：
+ARIA-X brings ideas from **ARTEX, Cairn, and PentAGI** into one independently implemented Python runtime, with unified persistent state, execution controls, and integrated auditing. We acknowledge the original authors and teams whose work helped shape this approach:
 
-| 上游项目 | 原作者 / 团队 | ARIA-X 借鉴的核心思想 | 许可证 |
+| Upstream Project | Original Author / Team | Core Concepts Adopted by ARIA-X | License |
 | :--- | :--- | :--- | :--- |
-| **ARTEX** | [Autumn-27](https://github.com/Autumn-27)（原仓库 `Autumn-27/ARTEX` 已于 2026-10 由作者移除） | 探索图与共享资产图分离的双图架构；Planner 作为唯一意图生成器；跨唤醒周期的 Todo 链；跨 Worker 过程轨迹；高风险工具审批门；图驱动报告 | **AGPL-3.0** |
-| **Cairn** | [起零衍迹 / oritera](https://github.com/oritera) | `Fact / Intent / Hint` 黑板模型；`bootstrap → reason → explore` 状态空间搜索；无固定角色的 OODA Worker；以“事实”而非“任务清单”为中心 | **AGPL-3.0** |
-| **PentAGI** | [VXControl](https://github.com/vxcontrol) | `researcher / coder / adviser / memorist` 专家分工；多模型 Provider 抽象；沙箱化终端；分层记忆；将复杂子问题委托给窄能力子代理 | **MIT** |
+| **ARTEX** | [Autumn-27](https://github.com/Autumn-27) (original repo `Autumn-27/ARTEX` removed by author in Oct 2026) | Dual-graph separation (exploration graph + shared asset graph); Planner as the sole intent generator; cross-wakeup Todo chain; cross-worker process traces; approval gate; graph-driven reports | **AGPL-3.0** |
+| **Cairn** | [oritera](https://github.com/oritera) | `Fact / Intent / Hint` blackboard; `bootstrap → reason → explore` state-space search; role-less OODA workers; centering state on verified facts rather than static task queues | **AGPL-3.0** |
+| **PentAGI** | [VXControl](https://github.com/vxcontrol) | `researcher / coder / adviser / memorist` specialist delegation; LLM provider abstraction; sandboxed terminal execution; layered memory | **MIT** |
 
-原作者的相关仓库（一并致谢）：
-- [Norma](https://github.com/Autumn-27/Norma)（ARTEX 使用的 Agent SDK）· [ScopeSentry](https://github.com/Autumn-27/ScopeSentry)（资产与范围测绘系统）
-- [oritera/Cairn](https://github.com/oritera/Cairn)（Cairn 主仓库）· [vxcontrol/pentagi](https://github.com/vxcontrol/pentagi)（PentAGI 主仓库）
+Related repositories by the upstream authors:
+- [Norma](https://github.com/Autumn-27/Norma) (agent SDK used by ARTEX) · [ScopeSentry](https://github.com/Autumn-27/ScopeSentry) (asset and scope mapping system)
+- [oritera/Cairn](https://github.com/oritera/Cairn) (Cairn repository) · [vxcontrol/pentagi](https://github.com/vxcontrol/pentagi) (PentAGI repository)
 
-> **来源与实现**：相关链接指向原作者主页或官方仓库。参考版本为 `ARTEX 0.3.15`、`Cairn 0.2.1` 与 `PentAGI v2.2.0`；ARIA-X 以 Python 标准库独立实现这些架构思想。欢迎同时关注和支持原作者的项目。
+> **Sources and implementation**: These links lead to original authors or official repositories. The versions studied were `ARTEX 0.3.15`, `Cairn 0.2.1`, and `PentAGI v2.2.0`. ARIA-X independently implements the resulting architecture using Python's standard library. Readers are encouraged to explore and support the original projects.
 
-### 关于 DeepSeek 辅助开发
+### Development Assistance from DeepSeek
 
-本项目的**架构收敛、代码实现、单元测试、离线验证脚本及中英文文档**均在 **DeepSeek Harness（DeepSeek-V4.1-Flash-1017）** 的辅助下完成：
-- 将三套异构技术栈（Go / Python / Go+TS）的核心概念抽象为统一的 Python 状态机与 SQLite 数据模型；
-- 实现并重构编排引擎、工具注册表、LLM 路由、HTTP API 与本地 Web 控制台；
-- 编写 354 项单元测试、离线端到端演示（`./aria-x demo`）与自检脚本。
+The **architectural consolidation, code implementation, unit test suite, offline verification pipeline, and bilingual documentation** of ARIA-X were developed with assistance from **DeepSeek Harness (DeepSeek-V4.1-Flash-1017)**:
+- Distilling three heterogeneous stacks (Go / Python / Go+TS) into a single Python state machine and unified SQLite schema;
+- Implementing and refactoring the orchestration engine, tool registry, LLM router, HTTP API, and local web console;
+- Authoring the 354 unit tests, deterministic offline demo (`./aria-x demo`), and verification scripts.
 
-架构取舍、安全边界与最终代码均由项目维护者审阅把关。
+All architectural trade-offs, safety boundaries, and final code were reviewed and validated by the maintainer.
 
 ---
 
-## 许可证与使用边界声明
+## License & Usage Boundaries
 
-### 1. 开源许可证（AGPL-3.0-or-later）
+### 1. Open-Source License (`AGPL-3.0-or-later`)
 
-本仓库以 **GNU Affero General Public License v3.0（AGPL-3.0-or-later）** 发布，完整条款见 [LICENSE](LICENSE)。
-- 上游项目 **ARTEX** 与 **Cairn** 均采用 **AGPL-3.0**，**PentAGI** 采用与 AGPL-3.0 兼容的 **MIT** 许可证；ARIA-X 选择 AGPL-3.0-or-later 以保持与上游生态的一致性。
-- 上游归属与独立实现声明见 [NOTICE.md](NOTICE.md)；PentAGI 的 MIT 许可原文与版权声明保留在 [THIRD_PARTY.md](THIRD_PARTY.md)。
-- **AGPL-3.0 第 13 条提醒**：若你将 ARIA-X（或其修改版）作为网络服务对外提供，必须向服务使用者提供对应完整源码的获取方式；分发二进制或容器镜像时必须附带 `LICENSE` 与 `NOTICE.md`。
+This repository is released under the **GNU Affero General Public License v3.0 (AGPL-3.0-or-later)**; see [LICENSE](LICENSE) for the full text.
+- Upstream inspirations **ARTEX** and **Cairn** are licensed under **AGPL-3.0**, and **PentAGI** is licensed under the AGPL-compatible **MIT** license. ARIA-X adopts `AGPL-3.0-or-later` to maintain license consistency across the lineage.
+- Upstream attribution and the independent-implementation statement are in [NOTICE.md](NOTICE.md); PentAGI's MIT license text and copyright notice are preserved in [THIRD_PARTY.md](THIRD_PARTY.md).
+- **AGPL-3.0 Section 13 Notice**: If you run ARIA-X (or a modified version) as a network-accessible service, you must make the complete corresponding source code available to users of that service. Any distributed binary or container image must include both `LICENSE` and `NOTICE.md`.
 
-### 2. 使用边界（作者补充约定）
+### 2. Usage Boundaries (Supplementary Author Terms)
 
-开源许可证本身不限制软件的应用场景。以下条款为作者在许可证之外设定的补充使用边界，请在下载、安装或运行前仔细阅读（本节不构成法律意见，亦不替代你所在机构的合规审查）：
+An open-source license does not by itself regulate field of use. The following supplementary boundaries are established by the author—please read them carefully before downloading, installing, or running this software (this section is not legal advice and does not replace your organization's compliance review):
 
-- **允许的用途**：
-  - 源码阅读、架构学习、安全教学、学术研究与代码审阅；
-  - 在**完全隔离的本地实验环境**中进行状态空间推理与原理性验证；
-  - 对本项目自身的非攻击性开发、测试与改进。
-- **严禁的用途**：
-  - **严禁**对任何网站、在线服务或联网系统进行扫描、探测、漏洞利用或攻击——**无论目标是否归你所有、也无论是否获得授权**；
-  - **严禁**用于真实业务环境中的渗透测试、红蓝对抗演练或生产系统测试；
-  - **严禁**用于非法入侵、数据窃取、勒索、拒绝服务或任何破坏性、违法犯罪活动；
-  - **严禁**用于任何违反使用者所在国家或地区法律法规的行为。
+- **Permitted Uses**:
+  - Reading source code, studying architecture, teaching, academic discussion, and code review;
+  - Conducting principle-level reasoning and verification experiments inside a **fully isolated local environment**;
+  - Non-offensive development, testing, and improvement of the project itself.
+- **Prohibited Uses**:
+  - **Do not** scan, probe, exploit, or attack any website, online service, or networked system—**regardless of whether you own the target or hold authorization**;
+  - **Do not** use this project for real-world penetration testing, red-team exercises, or production environments;
+  - **Do not** use this project for unauthorized intrusion, data exfiltration, extortion, denial of service, or any destructive or unlawful activity;
+  - **Do not** use this project in violation of any applicable laws or regulations in your jurisdiction.
 
-### 3. 合规义务与免责声明
+### 3. Compliance Obligations & Disclaimer
 
-使用者应自行确保其使用行为符合所在地关于网络安全、数据安全与计算机犯罪的法律法规（例如中国大陆《网络安全法》《数据安全法》《个人信息保护法》及相关司法解释），并自行承担因使用本项目产生的一切法律责任与后果。
+You are solely responsible for ensuring that your use of this software complies with all applicable cybersecurity, data-protection, and computer-crime laws and regulations in your jurisdiction (including, in mainland China, the Cybersecurity Law, Data Security Law, Personal Information Protection Law, and related judicial interpretations), and you bear all legal liability arising from your use.
 
-本项目按“原样（AS IS）”提供，不对适销性、特定用途适用性或不侵权作出任何明示或暗示担保。作者与贡献者不对因使用或无法使用本项目所导致的任何直接或间接损失、数据丢失、系统损坏、业务中断或法律争议承担责任。一旦下载、安装、复制或运行本项目，即视为你已阅读并同意遵守上述全部条款；若不同意，请立即停止使用并删除所有副本。
+This software is provided **"AS IS"**, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the author or contributors be liable for any direct or indirect damages, data loss, system damage, business interruption, or legal disputes arising out of the use of or inability to use this software. By downloading, installing, copying, or running this project, you agree to be bound by all terms in this section; if you do not agree, cease use immediately and delete all copies.
 
 ---
 
 <p align="center">
-  <sub>ARIA-X v0.3.0 · AGPL-3.0-or-later · Project by 01NGVI-QINGYI · 仅限本地隔离环境学习与研究</sub>
+  <sub>ARIA-X v0.3.0 · AGPL-3.0-or-later · Project by 01NGVI-QINGYI · Local, isolated study and research only</sub>
 </p>

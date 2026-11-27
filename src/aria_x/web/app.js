@@ -112,7 +112,7 @@
 
   function languageDisplayName(lang) {
     const code = normalizeLang(lang);
-    if (code === "zh-CN") return "简体中文";
+    if (code === "zh-CN") return "Simplified Chinese";
     if (code === "ja") return "日本語";
     return "English";
   }

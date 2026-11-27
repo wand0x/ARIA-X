@@ -15,14 +15,7 @@ This file collects the short repository metadata and the pre-publish checklist.
 Local-first state-space reasoning engine for security research. Fuses ARTEX, Cairn & PentAGI. Python, zero dependencies.
 ```
 
-## About (中文，简短)
-
-```text
-本地优先的安全研究状态空间推理引擎，融合 ARTEX、Cairn 与 PentAGI 的设计。Python，零依赖。
-```
-
-Use either line in the GitHub **About** field; the English version is recommended for the public
-repository description, the Chinese version can be used for the Chinese README introduction.
+Use this line in the GitHub **About** field as the public repository description.
 
 ## Suggested topics
 

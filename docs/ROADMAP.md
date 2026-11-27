@@ -1,116 +1,115 @@
-# ARIA-X 路线图
+# ARIA-X roadmap
 
-本文件区分三件事：**已经能用的**、**下一步要做的**、**明确不做的**。
-未实现的内容不会出现在 README 的"特性"里。
+This file separates three things: **what already works**, **what comes next**, and **what will not be done**.
+Anything not yet implemented does not appear in the README "features" list.
 
-## v0.1（当前）—— 已实现
+## v0.1 (current) — implemented
 
-### 引擎与状态
+### Engine and state
 
-- [x] SQLite 持久化：项目、运行、节点、边、资产、锚点、todo、任务、轨迹、证据、消息、
-      审计、审批、kv（`store/schema.py`）。
-- [x] 双图模型：探索图（nodes/edges）+ 资产图（assets/anchors）。
-- [x] planner 唯一意图生成；intent 去重/上限；todo 依赖调度。
-- [x] bootstrap → reason → dispatch → explore → persist → report 主循环。
-- [x] 预算：时间、LLM 调用、token、工具调用、intent 总数、并发、专家深度。
-- [x] 运行状态 `completed/budget/cancelled/failed`；预算耗尽仍出报告。
-- [x] **审批门强制**：`high`/`critical` 工具在 `safety.approval=ask` 时阻塞等待人工批准，
-      `deny` 直接拒绝，`auto` 放行；决定写审批表与审计。
-- [x] 后台运行、停止、状态查询；进程内 Run 注册表。
-- [x] 事件总线 + JSONL + SSE 重放；secret redaction。
-- [x] 项目导出 JSON。
+- [x] SQLite persistence: projects, runs, nodes, edges, assets, anchors, todos, tasks, traces,
+      evidence, messages, audit, approvals, and kv (`store/schema.py`).
+- [x] Dual-graph model: exploration graph (nodes/edges) + asset graph (assets/anchors).
+- [x] Planner is the sole intent generator; intent dedup/limits; todo dependency scheduling.
+- [x] Main loop: bootstrap → reason → dispatch → explore → persist → report.
+- [x] Budget: time, LLM calls, tokens, tool calls, total intents, concurrency, and specialist depth.
+- [x] Run states `completed/budget/cancelled/failed`; a report is still produced when the budget is exhausted.
+- [x] **Mandatory approval gate**: when `safety.approval=ask`, `high`/`critical` tools block until a human approves;
+      `deny` rejects them outright; `auto` allows them. The decision is written to the approval table and the audit log.
+- [x] Background runs, stop, and status queries; in-process Run registry.
+- [x] Event bus + JSONL + SSE replay; secret redaction.
+- [x] JSON project export.
 
-### 模型
+### Models
 
-- [x] OpenAI 兼容 provider（DeepSeek/vLLM/Ollama 等），原生 tool calling。
-- [x] Anthropic provider。
-- [x] `mock` provider（列表/policy）。
-- [x] `scenario` provider（JSON 脚本、角色队列、子串匹配、循环/内联 JSON）。
-- [x] JSON 契约解析与重试；分角色模型；token 用量估算。
+- [x] OpenAI-compatible provider (DeepSeek/vLLM/Ollama and others), with native tool calling.
+- [x] Anthropic provider.
+- [x] `mock` provider (list/policy).
+- [x] `scenario` provider (JSON scripts, role queues, substring matching, loops/inline JSON).
+- [x] JSON-contract parsing and retries; per-role models; token-usage estimates.
 
-### 工具
+### Tools
 
-- [x] 27 个工具：终端/文件、HTTP/DNS/端口/TLS/Web 探测、外部搜索、黑板、资产、
-      计划、轨迹、记忆、专家委派、目标证明、scope 诊断。
-- [x] 工具注册/参数校验/取消检查/异常边界。
-- [x] `Scope`：主机/通配/CIDR/URL 前缀/deny/回环/私网/限速。
-- [x] 沙箱：`local`、`docker`（一次性容器）、`mock`；破坏性命令策略。
-- [x] workdir jail、输出截断、证据与轨迹记录。
+- [x] 27 tools: terminal/files, HTTP/DNS/port/TLS/Web probing, external search, blackboard, assets,
+      plans, traces, memory, specialist delegation, goal proof, and scope diagnostics.
+- [x] Tool registration / argument validation / cancellation checks / exception boundaries.
+- [x] `Scope`: host/wildcard/CIDR/URL prefix/deny/loopback/private networks/rate limit.
+- [x] Sandbox: `local`, `docker` (one-shot containers), `mock`; destructive-command policy.
+- [x] workdir jail, output truncation, and evidence and trace recording.
 
 ### Agent
 
-- [x] planner / bootstrap / worker / specialist（researcher/coder/adviser/memorist）/
-      reporter 规格与 worker 运行时。
-- [x] 专家委派深度限制。
-- [x] 角色提示词与 JSON 契约。
+- [x] planner / bootstrap / worker / specialist (researcher/coder/adviser/memorist) /
+      reporter specs and the worker runtime.
+- [x] Specialist-delegation depth limit.
+- [x] Role prompts and JSON contracts.
 
-### 报告与界面
+### Reports and UI
 
-- [x] `report.md`、自包含 `report.html`、`findings.json`。
-- [x] 零依赖 TF-IDF 记忆检索。
-- [x] HTTP API（项目/图/轨迹/审计/报告/运行/停止/hint/审批/导出/SSE）。
-- [x] 无框架、无 CDN 的 Web 控制台（随 server 落地；截图待界面定稿后补充）。
-- [x] 可选 Bearer token；默认绑定 `127.0.0.1`。
+- [x] `report.md`, self-contained `report.html`, and `findings.json`.
+- [x] Zero-dependency TF-IDF memory retrieval.
+- [x] HTTP API (projects/graph/traces/audit/reports/runs/stop/hint/approvals/export/SSE).
+- [x] Framework-free, CDN-free Web console (ships with the server; screenshots will be added after the UI is finalized).
+- [x] Optional Bearer token; binds to `127.0.0.1` by default.
 
-### 工程与合规
+### Engineering and compliance
 
-- [x] 标准库零依赖；Python 3.11+。
-- [x] `unittest` 测试套件 + 离线 E2E（真实目标 + 真实引擎 + 脚本策略）。
-- [x] `scripts/bootstrap.sh`、`dev.sh`、`verify.sh`（无 pip、无网络）。
-- [x] Dockerfile / compose / Kali 沙箱文档。
-- [x] AGPL-3.0 LICENSE、NOTICE、THIRD_PARTY、FUSION 映射。
-- [x] 中文 README + English README；架构/工具/安全/部署文档。
+- [x] Standard library only, zero third-party dependencies; Python 3.11+.
+- [x] `unittest` suite + offline E2E (real target + real engine + scripted policy).
+- [x] `scripts/bootstrap.sh`, `dev.sh`, and `verify.sh` (no pip, no network).
+- [x] Dockerfile / compose / Kali sandbox docs.
+- [x] AGPL-3.0 LICENSE, NOTICE, THIRD_PARTY, and the FUSION map.
+- [x] Chinese README + English README; architecture/tools/security/deployment docs.
 
-## v0.2 —— 下一步（按优先级）
+## v0.2 — next (in priority order)
 
-### 安全与正确性
+### Security and correctness
 
-- [ ] **审批策略细化**：按工具/参数/目标配置审批规则（当前是按风险等级的统一策略），
-      以及审批超时与自动拒绝。
-- [ ] **运行恢复**：进程崩溃后从 Run/Task/Trace 恢复未完成的 intent，而不是只能新开 run。
-- [ ] **prompt injection 标记**：把目标响应标记为不可信数据，增加简单的注入特征提示与
-      高风险动作二次确认。
-- [ ] **scope 的 DNS 固定**：解析一次后固定 IP，降低 DNS rebinding 风险；当前每次工具调用
-      都可能重新解析。
-- [ ] **per-run 网络策略文档化**：Docker 网络与 scope 的组合矩阵、隔离 lab 参考拓扑。
+- [ ] **Finer approval policy**: approval rules by tool, argument, and target (today there is one policy by risk level),
+      plus an approval timeout and automatic denial.
+- [ ] **Run recovery**: after a process crash, resume unfinished intents from Run/Task/Trace instead of only starting a new run.
+- [ ] **Prompt-injection marking**: mark target responses as untrusted data, add a simple hint for injection signatures,
+      and require a second confirmation for high-risk actions.
+- [ ] **DNS pinning for scope**: resolve once and pin the IP, to reduce DNS-rebinding risk; today each tool call may resolve again.
+- [ ] **Document the per-run network policy**: a matrix of Docker networks combined with scope, and a reference topology for an isolated lab.
 
-### 能力
+### Capabilities
 
-- [ ] **更多工具**：目录/参数发现（有界）、OpenAPI/GraphQL 探测、JWT 解析、截图证据
-      （需要可选的 headless 浏览器，保持标准库默认路径不受影响）。
-- [ ] **攻击路径图**：报告中的 fact → intent → finding 可视化（当前是文字叙述）。
-- [ ] **多目标项目**：一个项目内按资产分组并行，当前并发是全局 intent 级。
-- [ ] **报告 PDF**：在零依赖前提下不引入重库；优先提供"用浏览器打印"的说明。
-- [ ] **更细的预算**：按角色/工具类别配额，当前是全局维度。
+- [ ] **More tools**: directory/parameter discovery (bounded), OpenAPI/GraphQL probing, JWT parsing, and screenshot evidence
+      (needs an optional headless browser; the default standard-library path stays unaffected).
+- [ ] **Attack-path graph**: visualize fact → intent → finding in the report (today this is prose).
+- [ ] **Multi-target projects**: parallelize by asset group within one project; concurrency is currently global at the intent level.
+- [ ] **Report PDF**: do not add a heavy library under the zero-dependency constraint; prefer instructions for printing from the browser.
+- [ ] **Finer budgets**: quotas by role and tool category; today the dimensions are global.
 
-### 体验
+### Experience
 
-- [ ] Web 控制台截图、GIF、演示视频；
-- [ ] 中文/英文 UI 切换（当前报告语言由 `engine.language` 控制）；
-- [ ] `aria-x import`：从 JSON 导出恢复只读项目视图；
-- [ ] 更友好的 `doctor` 输出（依赖图、端口占用、模型延迟）。
+- [ ] Web console screenshots, a GIF, and a demo video;
+- [ ] Chinese/English UI switch (report language is currently controlled by `engine.language`);
+- [ ] `aria-x import`: restore a read-only project view from a JSON export;
+- [ ] Friendlier `doctor` output (dependency graph, ports in use, model latency).
 
-### 工程
+### Engineering
 
-- [ ] CI（GitHub Actions）：`unittest` + `verify.sh` + 文档链接检查；
-- [ ] 覆盖率门槛与核心路径的 property-based 测试（仍用标准库）；
-- [ ] 发布流程：版本号、CHANGELOG、容器镜像签名/SBOM；
-- [ ] 性能：大图（>10k 节点）下的 `graph_overview` 分页与索引调优。
+- [ ] CI (GitHub Actions): `unittest` + `verify.sh` + documentation link checks;
+- [ ] A coverage threshold and property-based tests of core paths (still using the standard library);
+- [ ] Release process: version number, CHANGELOG, container-image signing/SBOM;
+- [ ] Performance: pagination and index tuning for `graph_overview` on large graphs (>10k nodes).
 
-## 明确不做
+## Explicitly out of scope
 
-- **自动化武器化/大规模利用**：不提供蠕虫化传播、批量 0day 利用、持久化后门、
-  凭据大规模窃取等功能。ARIA-X 的定位是授权评估与证据生产。
-- **规避检测/反取证**：不做 stealth、日志清除、EDR 绕过、C2 隐藏。
-- **未授权目标发现**：不做互联网资产测绘、随机 IP 扫描、Shodan 式发现。
-- **多租户 SaaS**：当前是单机单团队工具；不做公网多租户控制面。
-- **内置漏洞库/exploit 数据库**：模型可以生成 payload，但 ARIA-X 不分发 exploit 集合。
-- **替代人工授权判断**：`scope.authorized=true` 是人的声明，工具不会替你获得授权。
+- **Automated weaponization / large-scale exploitation**: no worm-like propagation, bulk 0day exploitation, persistent backdoors,
+  or large-scale credential theft. ARIA-X is for authorized assessment and evidence production.
+- **Evasion / anti-forensics**: no stealth, log wiping, EDR bypass, or C2 hiding.
+- **Unauthorized target discovery**: no internet-wide asset mapping, random IP scanning, or Shodan-style discovery.
+- **Multi-tenant SaaS**: this is a single-machine, single-team tool; there is no public multi-tenant control plane.
+- **Built-in vulnerability database / exploit database**: the model may generate payloads, but ARIA-X does not distribute an exploit collection.
+- **Replacing a human authorization decision**: `scope.authorized=true` is a person's declaration; the tool will not obtain authorization for you.
 
-## 如何贡献
+## How to contribute
 
-1. 先读 [CONTRACTS.md](CONTRACTS.md) 与 [ARCHITECTURE.md](ARCHITECTURE.md)；
-2. 一个 PR 只做一件事；新增工具必须带 schema、风险标注与测试；
-3. 网络相关代码必须先 scope 后 I/O；不得引入第三方 Python 依赖；
-4. 文档改动必须与代码一致；不要写"计划中"的功能到 README 的特性里；
-5. 许可证：贡献以 AGPL-3.0 授权；涉及上游代码必须先讨论归属。
+1. Read [CONTRACTS.md](CONTRACTS.md) and [ARCHITECTURE.md](ARCHITECTURE.md) first;
+2. One PR does one thing; a new tool must include a schema, a risk label, and tests;
+3. Network-related code must check scope before I/O; do not introduce third-party Python dependencies;
+4. Documentation changes must match the code; do not put "planned" features into the README features list;
+5. License: contributions are licensed under AGPL-3.0; anything that involves upstream code must discuss attribution first.

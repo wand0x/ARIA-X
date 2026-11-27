@@ -1,5 +1,5 @@
 <p align="right">
-  <a href="README.md">简体中文</a> · <a href="README.en.md">English</a> · <strong>日本語</strong>
+  <a href="README.md">English</a> · <a href="README.en.md">English</a> · <strong>日本語</strong>
 </p>
 
 <p align="center">
@@ -77,7 +77,7 @@ flowchart LR
 - **27 種類の内蔵ツール**：ファイル・ターミナル操作、HTTP/DNS/TCP/TLS 検証、ブラックボード・資産管理、検索、専門エージェントへの委任、目標検証などを提供します。
 - **対話型 PTY セッション（v0.1.1 で追加）**：`session_open`、`session_send`、`session_read`、`session_close`、`session_list` により、対話が必要なターミナルプログラムを隔離されたローカル実験環境で扱えます。セッションの開始と入力送信は高リスク操作であり、Scope・コマンドポリシー・承認ゲートの対象です。同時セッション数は実行ごとに最大 4 件で、アイドル時の清掃処理も備えます。
 - **統合された実行制御**：対象 Scope のホワイトリスト（HTTP リダイレクトの各ホップ再検証に加え、`safety.allow_public_targets = false` の場合は名前解決できないホストも拒否）、作業ディレクトリの制限、`local` / `docker` / `mock` サンドボックス、および `auto` / `ask` / `deny` の承認ポリシーを備えます。
-- **ローカル Web コンソール**：標準では `127.0.0.1:8787` にバインドし、外部 CDN に依存せず、SSE による更新、グラフ、検出結果、実行履歴、承認待ち項目を表示します。設定画面で `English` / `简体中文` / `日本語` を切り替え可能（既定は英語、ブラウザの `localStorage` に保存され、レポート本文は書き換えません）。
+- **ローカル Web コンソール**：標準では `127.0.0.1:8787` にバインドし、外部 CDN に依存せず、SSE による更新、グラフ、検出結果、実行履歴、承認待ち項目を表示します。設定画面で `English` / `Simplified Chinese` / `日本語` を切り替え可能（既定は英語、ブラウザの `localStorage` に保存され、レポート本文は書き換えません）。
 - **複数 LLM Provider**：OpenAI 互換 API、Anthropic、Ollama、Mock、Scenario に対応します。
 - **証拠に基づく成果物**：SQLite、JSONL イベント・監査記録に加えて、`report.md`、`report.html`、`findings.json` を出力します。`aria_x.report.render` は明示的な `en` / `zh-CN` / `ja` テンプレートに対応しつつ、既存の CLI / Demo 入口では既定で英語の固定見出しを使用します。
 

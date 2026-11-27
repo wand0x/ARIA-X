@@ -218,7 +218,7 @@ class ReportTrilingualTests(unittest.TestCase):
         export = build_export()
         expected = {
             "en": ("## 1. Executive Summary", "## 4. Findings", '<html lang="en">', "ARIA-X · Authorized Security Assessment", ("critical", "assets", "facts")),
-            "zh-CN": ("## 1. 执行摘要", "## 4. 安全发现", '<html lang="zh-CN">', "ARIA-X · 授权安全评估", ("严重", "资产", "事实")),
+            "zh-CN": ("## 1. Executive Summary", "## 4. Findings", '<html lang="zh-CN">', "ARIA-X · Authorized Security Assessment", ("critical", "assets", "facts")),
             "ja": ("## 1. エグゼクティブサマリー", "## 4. 検出事項", '<html lang="ja">', "ARIA-X · 認可済みセキュリティ評価", ("緊急", "資産", "事実")),
         }
         with tempfile.TemporaryDirectory() as tmp:
@@ -253,7 +253,7 @@ class ReportTrilingualTests(unittest.TestCase):
         finally:
             store.close()
         for lang, marker in (
-            ("zh-CN", "_本次评估未确认任何安全发现。_"),
+            ("zh-CN", "_No findings were confirmed during this engagement._"),
             ("ja", "_本エンゲージメントでは確定した検出事項はありませんでした。_"),
         ):
             md = render_markdown(export, meta={"run_id": "r0"}, language=lang)
@@ -317,7 +317,7 @@ class AttackGraphTests(unittest.TestCase):
         self.assertNotIn("```mermaid", html_text)
 
     def test_graph_is_localized(self) -> None:
-        for lang, expected in (("en", "Attack path diagram"), ("zh-CN", "攻击路径图"), ("ja", "攻撃経路図")):
+        for lang, expected in (("en", "Attack path diagram"), ("zh-CN", "Attack path diagram"), ("ja", "攻撃経路図")):
             md = render_markdown(self._export(), language=lang)
             self.assertIn(expected, md, lang)
 

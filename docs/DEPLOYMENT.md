@@ -1,80 +1,80 @@
-# ARIA-X 部署指南
+# ARIA-X deployment guide
 
-ARIA-X 是单进程、标准库优先的应用：一个 Python 解释器、一个 SQLite 文件、一个可选的
-Docker 守护进程。没有数据库服务、消息队列、Redis 或前端构建步骤。
+ARIA-X is a single-process, standard-library-first application: one Python interpreter, one SQLite file, and an optional
+Docker daemon. There is no database service, message queue, Redis, or frontend build step.
 
-> 部署前请先读 [SECURITY.md](SECURITY.md) 的授权与最小权限清单。
+> Before deploying, read the authorization and least-privilege checklist in [SECURITY.md](SECURITY.md).
 
-## 1. 环境要求
+## 1. Requirements
 
-| 组件 | 要求 |
+| Component | Requirement |
 | --- | --- |
-| Python | CPython **≥ 3.11**（推荐 3.12）；仅标准库 |
-| 操作系统 | macOS / Linux；Windows 未验证（路径与信号语义可能不同） |
-| 磁盘 | `data/`（SQLite + 事件）+ `runs/`（报告）；建议 ≥ 1 GB 可用 |
-| 可选 | Docker / Podman（仅 `sandbox.backend="docker"` 时） |
-| 网络 | 真实 engagement 需要到目标与模型 API 的网络；`aria-x demo` 完全离线 |
+| Python | CPython **≥ 3.11** (3.12 recommended); standard library only |
+| Operating system | macOS / Linux; Windows is not verified (path and signal semantics may differ) |
+| Disk | `data/` (SQLite + events) + `runs/` (reports); ≥ 1 GB free recommended |
+| Optional | Docker / Podman (only when `sandbox.backend="docker"`) |
+| Network | A real engagement needs network access to the target and the model API; `aria-x demo` is fully offline |
 
-推荐直接使用 `python3.12`（或设置 `ARIA_X_PYTHON`）：
+Using `python3.12` directly is recommended (or set `ARIA_X_PYTHON`):
 
 ```bash
 python3.12 --version
 ```
 
-`scripts/_common.sh` 的发现顺序：`$ARIA_X_PYTHON` → `python3.12` → `python3.11` →
-满足 ≥3.11 的 `python3`。
+Discovery order in `scripts/_common.sh`: `$ARIA_X_PYTHON` → `python3.12` → `python3.11` →
+a `python3` that satisfies ≥3.11.
 
-## 2. 获取与启动
+## 2. Get and start
 
 ```bash
 cd "/path/to/ARIA-X"
 export PYTHONPATH="$PWD/src"
 
-python -m aria_x doctor              # 环境自检
-python -m aria_x demo                # 离线端到端验证
-python -m aria_x init                # 写入 configs/aria-x.toml
-python -m aria_x serve --open        # Web 控制台
+python -m aria_x doctor              # environment self-check
+python -m aria_x demo                # offline end-to-end verification
+python -m aria_x init                # write configs/aria-x.toml
+python -m aria_x serve --open        # Web console
 ```
 
-ARIA-X 不需要安装成包。若你希望 `aria-x` 命令可用，可自行创建 shell alias：
+ARIA-X does not need to be installed as a package. If you want the `aria-x` command available, create a shell alias yourself:
 
 ```bash
 alias aria_x='PYTHONPATH="/path/to/ARIA-X/src" python3.12 -m aria_x'
 ```
 
-（`pyproject.toml` 提供了 `aria-x = "aria_x.cli:main"` 的入口点，但文档不依赖 `pip install`。）
+(`pyproject.toml` provides the entry point `aria-x = "aria_x.cli:main"`, but the docs do not depend on `pip install`.)
 
-## 3. 配置
+## 3. Configuration
 
-### 3.1 加载顺序
+### 3.1 Load order
 
-默认值 < 配置文件 < 环境变量 < 显式覆盖。
+Defaults < config file < environment variables < explicit overrides.
 
-配置文件查找顺序：
+Config-file search order:
 
-1. `-c/--config <path>`（命令行显式指定）；
-2. `$ARIA_X_CONFIG`；
-3. `configs/aria-x.toml`、`aria-x.toml`、`configs/aria-x.json`、`aria-x.json`（当前目录）。
+1. `-c/--config <path>` (given explicitly on the command line);
+2. `$ARIA_X_CONFIG`;
+3. `configs/aria-x.toml`, `aria-x.toml`, `configs/aria-x.json`, `aria-x.json` (current directory).
 
-TOML 需要 Python 3.11+；JSON 始终可用。**相对路径（`data_dir`、`runs_dir`、
-`llm.scenario`）按当前工作目录解析**，所以推荐在仓库根目录运行。
+TOML requires Python 3.11+; JSON always works. **Relative paths (`data_dir`, `runs_dir`,
+`llm.scenario`) are resolved against the current working directory**, so run from the repository root.
 
-### 3.2 环境变量
+### 3.2 Environment variables
 
-| 变量 | 作用 |
+| Variable | Purpose |
 | --- | --- |
-| `ARIA_X_CONFIG` | 配置文件路径 |
-| `ARIA_X_API_KEY` | 模型 API key（优先于配置文件） |
+| `ARIA_X_CONFIG` | Config file path |
+| `ARIA_X_API_KEY` | Model API key (takes precedence over the config file) |
 | `ARIA_X_PROVIDER` | `openai` / `anthropic` / `ollama` / `mock` / `scenario` |
-| `ARIA_X_BASE_URL` | OpenAI 兼容 endpoint |
-| `ARIA_X_MODEL` | 模型名 |
-| `ARIA_X_DATA_DIR` | 数据目录（SQLite、事件） |
+| `ARIA_X_BASE_URL` | OpenAI-compatible endpoint |
+| `ARIA_X_MODEL` | Model name |
+| `ARIA_X_DATA_DIR` | Data directory (SQLite, events) |
 | `ARIA_X_AUTH_TOKEN` | Web API Bearer token |
-| `ARIA_X_LOG_LEVEL` | `INFO` / `DEBUG` 等 |
+| `ARIA_X_LOG_LEVEL` | `INFO` / `DEBUG`, and so on |
 | `ARIA_X_SANDBOX` | `local` / `docker` / `mock` |
 | `ARIA_X_APPROVAL` | `auto` / `ask` / `deny` |
 
-### 3.3 最小配置示例
+### 3.3 Minimal configuration example
 
 ```toml
 name = "Staging review"
@@ -126,9 +126,9 @@ bootstrap = true
 max_idle_rounds = 2
 ```
 
-## 4. 模型接入
+## 4. Model integration
 
-### 4.1 OpenAI 兼容（DeepSeek / vLLM / LM Studio / Ollama）
+### 4.1 OpenAI-compatible (DeepSeek / vLLM / LM Studio / Ollama)
 
 ```toml
 [llm]
@@ -142,8 +142,8 @@ export ARIA_X_API_KEY="sk-..."
 python -m aria_x doctor --llm
 ```
 
-Ollama 可直接用 `provider="ollama"`（默认 `http://127.0.0.1:11434/v1`）或
-`provider="openai"` + 自定义 `base_url`。
+Ollama can be used directly with `provider="ollama"` (default `http://127.0.0.1:11434/v1`) or with
+`provider="openai"` plus a custom `base_url`.
 
 ### 4.2 Anthropic
 
@@ -158,7 +158,7 @@ model = "claude-sonnet-4-20250514"
 export ARIA_X_API_KEY="sk-ant-..."
 ```
 
-### 4.3 分角色模型
+### 4.3 Per-role models
 
 ```toml
 [llm.role_models]
@@ -167,29 +167,29 @@ worker = "deepseek-chat"
 reporter = "deepseek-chat"
 ```
 
-### 4.4 离线 provider
+### 4.4 Offline providers
 
-- `mock`：回放列表或 policy 函数，主要用于测试；
-- `scenario`：`llm.scenario = "examples/scenario_demo.json"`，按角色队列回放，
-  用于文档示例与回归测试。并行时队列会被并发消费，确定性场景请设 `max_concurrency=1`。
+- `mock`: replays a list or a policy function; mainly for tests;
+- `scenario`: `llm.scenario = "examples/scenario_demo.json"` replays a per-role queue,
+  for documentation examples and regression tests. In parallel the queue is consumed concurrently; set `max_concurrency=1` for a deterministic scenario.
 
-## 5. Web 控制台与 API
+## 5. Web console and API
 
 ```bash
 export ARIA_X_AUTH_TOKEN="$(python3 -c 'import secrets; print(secrets.token_hex(16))')"
 python -m aria_x serve --host 127.0.0.1 --port 8787
 ```
 
-- 默认只绑定 `127.0.0.1`。需要远程访问时，**优先**用 SSH 隧道：
-  `ssh -L 8787:127.0.0.1:8787 user@host`；
-- 或放在带 TLS 的反向代理（Caddy/Nginx）之后，并设置 `ARIA_X_AUTH_TOKEN`；
-- ARIA-X **不自带 TLS**。直接在公网监听等于明文传输 token 与目标数据；
-- SSE 端点 `GET /api/projects/<id>/events` 仅接受请求头认证（`Authorization: Bearer $ARIA_X_AUTH_TOKEN` 或 `X-ARIA-X-Token`），不再接受 `?token=` 查询参数；
-- health：`curl -H "Authorization: Bearer $ARIA_X_AUTH_TOKEN" http://127.0.0.1:8787/api/health`。
+- By default it binds only to `127.0.0.1`. For remote access, **prefer** an SSH tunnel:
+  `ssh -L 8787:127.0.0.1:8787 user@host`;
+- or put it behind a reverse proxy with TLS (Caddy/Nginx) and set `ARIA_X_AUTH_TOKEN`;
+- ARIA-X **does not ship TLS**. Listening on the public internet sends the token and target data in cleartext;
+- the SSE endpoint `GET /api/projects/<id>/events` accepts only header authentication (`Authorization: Bearer $ARIA_X_AUTH_TOKEN` or `X-ARIA-X-Token`), and no longer accepts a `?token=` query parameter;
+- health: `curl -H "Authorization: Bearer $ARIA_X_AUTH_TOKEN" http://127.0.0.1:8787/api/health`.
 
 ## 6. Docker
 
-### 6.1 构建与运行
+### 6.1 Build and run
 
 ```bash
 docker build -f docker/Dockerfile -t aria-x:0.3.0 .
@@ -201,10 +201,10 @@ docker run --rm -p 127.0.0.1:8787:8787 \
   aria-x:0.3.0
 ```
 
-镜像只包含 ARIA-X 本体（标准库），**不包含**扫描工具。镜像默认以 UID 10001 的非 root 用户运行；
-绑定挂载的宿主机目录通常属于你的 UID，因此示例用 `--user "$(id -u):$(id -g)"` 让容器进程
-与宿主机目录所有者一致（否则写入 `data/` 可能被拒绝）。容器只写挂载的 `data/`、`runs/`
-与 `/tmp`。
+The image contains only ARIA-X itself (the standard library) and **does not include** scanning tools. By default the image runs as non-root UID 10001;
+a bind-mounted host directory is usually owned by your UID, so the example uses `--user "$(id -u):$(id -g)"` to make the container process
+match the host directory owner (otherwise writes to `data/` may be denied). The container writes only the mounted `data/`, `runs/`,
+and `/tmp`.
 
 ### 6.2 Compose
 
@@ -215,83 +215,83 @@ export ARIA_X_UID="$(id -u)" ARIA_X_GID="$(id -g)"   # match the mounted data di
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-`docker/docker-compose.yml` 强制要求显式设置 `ARIA_X_AUTH_TOKEN`（未设置或为空时 `docker compose` 会直接报错退出，不再使用固定默认口令）。它还提供一个 `sandbox` profile 的 Kali 容器作为参考；它默认不启动，
-也不与 ARIA-X 容器共享网络。
+`docker/docker-compose.yml` requires `ARIA_X_AUTH_TOKEN` to be set explicitly (`docker compose` exits with an error if it is unset or empty, and no longer uses a fixed default password). It also provides a Kali container on the `sandbox` profile as a reference; that container does not start by default
+and does not share a network with the ARIA-X container.
 
-### 6.3 在容器里跑 ARIA-X + Docker 沙箱
+### 6.3 Run ARIA-X and a Docker sandbox inside a container
 
-`docker/Dockerfile` 不安装 Docker CLI，因此容器内的 `sandbox.backend` 应保持 `local`
-（容器本身即隔离层）。若要在 ARIA-X 容器内再启动工具容器，需要挂载宿主
-`/var/run/docker.sock`——这等于把宿主 root 交给容器内进程，**ARIA-X 不推荐**。
-更安全的模式是：ARIA-X 跑在宿主机（或专用 VM），只把工具容器交给 Docker 沙箱。
+`docker/Dockerfile` does not install the Docker CLI, so `sandbox.backend` inside the container should stay `local`
+(the container itself is the isolation layer). Starting further tool containers from inside the ARIA-X container means mounting the host
+`/var/run/docker.sock` — that hands host root to the process inside the container, which **ARIA-X does not recommend**.
+The safer pattern is to run ARIA-X on the host (or a dedicated VM) and give only the tool containers to the Docker sandbox.
 
-Kali 镜像与 `sandbox.backend="docker"` 的完整说明见
-[docker/kali-sandbox.md](../docker/kali-sandbox.md)。
+The Kali image and `sandbox.backend="docker"` are documented in
+[docker/kali-sandbox.md](../docker/kali-sandbox.md).
 
-## 7. 数据目录、备份与恢复
+## 7. Data directory, backup, and restore
 
 ```
 data/
-  aria-x.db            # SQLite（WAL：还有 -wal/-shm）
-  events.jsonl       # 追加式事件流
+  aria-x.db            # SQLite (WAL: also -wal/-shm)
+  events.jsonl       # append-only event stream
 runs/
   <run_id>/report.md|html|findings.json
   demo-<stamp>/<run_id>/...
 ```
 
-备份（停止写入后）：
+Backup (after writes have stopped):
 
 ```bash
-python -m aria_x export -o backup-export.json     # 逻辑导出（推荐跨版本）
-sqlite3 data/aria-x.db ".backup 'aria-x-backup.db'" # 物理备份（需要 sqlite3 CLI）
+python -m aria_x export -o backup-export.json     # logical export (recommended across versions)
+sqlite3 data/aria-x.db ".backup 'aria-x-backup.db'" # physical backup (requires the sqlite3 CLI)
 ```
 
-恢复：
+Restore:
 
-- 逻辑导出适合审阅与归档；ARIA-X 当前没有 `import` 子命令，恢复运行状态需要保留
-  `data/aria-x.db` 本身；
-- 直接把备份的 `aria-x.db`/`runs/` 放回原位置，然后 `aria-x projects` 验证。
+- A logical export is suitable for review and archival. ARIA-X currently has no `import` subcommand, so restoring a running state means keeping
+  `data/aria-x.db` itself;
+- put the backed-up `aria-x.db` and `runs/` back in place, then verify with `aria-x projects`.
 
-升级：ARIA-X 处于 0.x（pre-1.0），schema 可能变化。升级前备份 `data/` 与 `runs/`；若启动时报
-schema 不兼容，保留备份并查阅 release notes。
+Upgrades: ARIA-X is at 0.x (pre-1.0), and the schema may change. Back up `data/` and `runs/` before upgrading; if startup reports
+an incompatible schema, keep the backup and read the release notes.
 
-## 8. 排障
+## 8. Troubleshooting
 
-| 现象 | 检查 |
+| Symptom | Check |
 | --- | --- |
-| `ModuleNotFoundError: aria_x` | 没设 `PYTHONPATH=$PWD/src`，或不在仓库根目录 |
-| `refusing to start: scope.authorized is false` | 这是授权门；确认有书面授权后再设 true |
-| `refusing to start: scope.targets is empty` | 至少配置一个 target |
-| `config file not found` | `-c` 路径、`ARIA_X_CONFIG` 或当前目录的 `configs/aria-x.toml` |
-| `llm.api_key is required` | `export ARIA_X_API_KEY=...` 或配置 `llm.api_key` |
-| `address already in use` | 换 `server.port` 或 `--port`；确认没有旧进程 |
-| Docker 沙箱 `image not present` | `docker pull <image>` 或先构建 `aria-x-kali` |
-| `docker daemon not running` | 启动 Docker Desktop / `systemctl start docker` |
-| 预算是 `budget` 状态 | 正常收尾；调大 `budget.*` 或缩窄目标 |
-| 工具一直 scope 拒绝 | `python -m aria_x tools` 看 `scope_check`；确认 URL 主机/端口/前缀覆盖 |
-| Web 控制台 401 | 设置/携带 `Authorization: Bearer $ARIA_X_AUTH_TOKEN` |
-| SSE 不更新 | 反代需关闭 buffering；或携带 `Authorization: Bearer $ARIA_X_AUTH_TOKEN` 直连 |
-| 运行卡住 | 查看 `/api/runs/<id>` 的 tasks 与 `data/events.jsonl`；`POST /api/runs/<id>/stop` |
+| `ModuleNotFoundError: aria_x` | `PYTHONPATH=$PWD/src` is not set, or you are not in the repository root |
+| `refusing to start: scope.authorized is false` | This is the authorization gate; set true only after you have written authorization |
+| `refusing to start: scope.targets is empty` | Configure at least one target |
+| `config file not found` | The `-c` path, `ARIA_X_CONFIG`, or `configs/aria-x.toml` in the current directory |
+| `llm.api_key is required` | `export ARIA_X_API_KEY=...`, or set `llm.api_key` |
+| `address already in use` | Change `server.port` or `--port`; confirm no old process is left |
+| Docker sandbox `image not present` | `docker pull <image>`, or build `aria-x-kali` first |
+| `docker daemon not running` | Start Docker Desktop / `systemctl start docker` |
+| Run status is `budget` | Normal finish; raise `budget.*` or narrow the target |
+| Tools keep getting scope-denied | `python -m aria_x tools` and inspect `scope_check`; confirm URL host/port/prefix coverage |
+| Web console returns 401 | Set and send `Authorization: Bearer $ARIA_X_AUTH_TOKEN` |
+| SSE does not update | The reverse proxy must disable buffering; or connect directly with `Authorization: Bearer $ARIA_X_AUTH_TOKEN` |
+| A run is stuck | Inspect tasks at `/api/runs/<id>` and `data/events.jsonl`; `POST /api/runs/<id>/stop` |
 
-## 9. 生产前检查清单
+## 9. Pre-production checklist
 
-- [ ] `bash scripts/verify.sh` 通过；
-- [ ] `python -m aria_x doctor --llm` 通过；
-- [ ] `scope.authorized` 与 `scope.targets` 来自书面授权，`deny` 覆盖共享设施；
-- [ ] `server.host` 为 `127.0.0.1` 或位于 TLS 反代之后；
-- [ ] `ARIA_X_AUTH_TOKEN` 已设置且非默认值；
-- [ ] `sandbox.backend="docker"`，镜像固定版本，未使用 `--privileged`；
-- [ ] `data/`、`runs/` 权限与保留期符合合同；
-- [ ] 已约定停止条件、联络人与应急流程；
-- [ ] 报告分发前人工复核敏感信息。
+- [ ] `bash scripts/verify.sh` passes;
+- [ ] `python -m aria_x doctor --llm` passes;
+- [ ] `scope.authorized` and `scope.targets` come from written authorization, and `deny` covers shared infrastructure;
+- [ ] `server.host` is `127.0.0.1`, or the service sits behind a TLS reverse proxy;
+- [ ] `ARIA_X_AUTH_TOKEN` is set and is not a default value;
+- [ ] `sandbox.backend="docker"`, the image is pinned to a version, and `--privileged` is not used;
+- [ ] permissions and retention for `data/` and `runs/` match the contract;
+- [ ] stop conditions, a contact, and an incident process are agreed;
+- [ ] a person reviews sensitive information before reports are distributed.
 
-## 10. 卸载/清理
+## 10. Uninstall / cleanup
 
 ```bash
-# 停止进程后
-rm -rf data runs                      # ⚠️ 会删除全部 engagement 状态与报告
+# after stopping the process
+rm -rf data runs                      # ⚠️ deletes all engagement state and reports
 docker ps -a --filter name=aria-x- --format '{{.ID}}' | xargs -r docker rm -f
 docker image rm aria-x:0.3.0 aria-x-kali:latest 2>/dev/null || true
 ```
 
-删除前请确认路径，避免误删其他项目。
+Confirm the path before deleting, so you do not remove another project by mistake.

@@ -1,31 +1,31 @@
-# THIRD_PARTY — 第三方组件、依赖与致谢
+# THIRD_PARTY — third-party components, dependencies, and acknowledgements
 
-## 1. 运行时依赖
+## 1. Runtime dependencies
 
-ARIA-X 的运行时**只使用 Python 3.11+ 标准库**（目标 3.12），`pyproject.toml` 中
-`dependencies = []`。因此不存在需要随包分发的第三方 Python 包，也不存在 SBOM 中的
-Python 传递依赖。
+ARIA-X's runtime **uses only the Python 3.11+ standard library** (3.12 is the target). In `pyproject.toml`,
+`dependencies = []`. There is therefore no third-party Python package to ship with the distribution, and no transitive
+Python dependency for an SBOM.
 
-| 类别 | 依赖 | 说明 |
+| Category | Dependency | Notes |
 | --- | --- | --- |
-| 语言运行时 | CPython ≥ 3.11 | 仅标准库：`http.server`、`sqlite3`、`threading`、`tomllib`、`unittest` 等 |
-| 可选容器 | Docker / Podman | 仅在 `sandbox.backend = "docker"` 时调用，用于 Kali 沙箱 |
-| 可选外部服务 | 任意 OpenAI 兼容 API 或 Anthropic API | 通过 HTTP 调用，不绑定 SDK |
+| Language runtime | CPython ≥ 3.11 | Standard library only: `http.server`, `sqlite3`, `threading`, `tomllib`, `unittest`, and others |
+| Optional containers | Docker / Podman | Invoked only when `sandbox.backend = "docker"`, for the Kali sandbox |
+| Optional external services | Any OpenAI-compatible API, or the Anthropic API | Called over HTTP; no SDK is bundled |
 
-不随仓库分发的开发期工具（`bash`、`curl`、`docker`）不属于运行时依赖。
+Development-time tools that are not shipped in the repository (`bash`, `curl`, `docker`) are not runtime dependencies.
 
-## 2. 思想来源与归属（非代码依赖）
+## 2. Sources of ideas and attribution (not code dependencies)
 
-ARIA-X 融合了三个项目的设计概念，但**没有复制其代码**。完整合规说明见
-[NOTICE.md](NOTICE.md)。
+ARIA-X fuses design concepts from three projects, but **does not copy their code**. The full compliance statement is in
+[NOTICE.md](NOTICE.md).
 
-| 项目 | 许可证 | 版权持有者 | ARIA-X 借鉴的概念 |
+| Project | License | Copyright holder | Concepts ARIA-X borrows |
 | --- | --- | --- | --- |
-| Cairn | AGPL-3.0 | oritera / Cairn contributors | 黑板 Fact/Intent/Hint、reason→explore OODA、无固定角色的 worker |
-| ARTEX | AGPL-3.0 | Autumn-27 / ARTEX contributors | 双图分离、planner 独占意图生成、共享 todo 链、跨 worker 轨迹、审批门 |
-| PentAGI | MIT | PentAGI Development Team (2025) | 专家团队、provider 抽象、沙箱终端、分层记忆 |
+| Cairn | AGPL-3.0 | oritera / Cairn contributors | Fact/Intent/Hint blackboard, reason→explore OODA, role-less workers |
+| ARTEX | AGPL-3.0 | Autumn-27 / ARTEX contributors | Dual-graph separation, planner as the sole intent generator, shared todo chain, cross-worker traces, approval gate |
+| PentAGI | MIT | PentAGI Development Team (2025) | Specialist team, provider abstraction, sandboxed terminal, layered memory |
 
-### PentAGI MIT 许可全文
+### Full text of the PentAGI MIT license
 
 ```
 MIT License
@@ -51,15 +51,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 3. 字体、图标与前端资源
+## 3. Fonts, icons, and frontend assets
 
-- `assets/logo.svg`、`assets/architecture.svg` 为 ARIA-X 原创 SVG，使用系统字体栈
-  （`ui-sans-serif, system-ui, ...`），不内嵌第三方字体文件。
-- Web 控制台（`src/aria_x/web/`）不加载 CDN 资源、不使用第三方 JS 框架，
-  离线环境可完整运行。
-- 示例目标 `examples/demo_target.py` 使用标准库 `http.server`，不包含第三方代码。
+- `assets/logo.svg` and `assets/architecture.svg` are original ARIA-X SVGs. They use the system font stack
+  (`ui-sans-serif, system-ui, ...`) and do not embed third-party font files.
+- The Web console (`src/aria_x/web/`) loads no CDN assets and uses no third-party JS framework,
+  so it runs completely offline.
+- The example target `examples/demo_target.py` uses the standard-library `http.server` and contains no third-party code.
 
-## 4. 数据与商标
+## 4. Data and trademarks
 
-- 仓库内不包含任何真实客户数据、凭据或扫描结果。
-- "Cairn"、"ARTEX"、"PentAGI" 等名称仅用于归属说明，相关商标归各自权利人所有。
+- The repository contains no real customer data, credentials, or scan results.
+- Names such as "Cairn", "ARTEX", and "PentAGI" are used only for attribution. The related trademarks belong to their respective owners.
